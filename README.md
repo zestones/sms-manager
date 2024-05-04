@@ -1,16 +1,11 @@
 # sms_manager
 
-A new Flutter project.
+This is a simple SMS manager that allows you to send SMS messages to a list of phone numbers. The list of phone numbers should be stored in a csv file. The SMS manager reads the csv file and sends the SMS messages to the phone numbers in the list.
 
-## Getting Started
+## Example of a CSV file
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```
+Name,Phone Number,Categories
+John Doe,1234567890,[Family, Friends]
+Jane Doe,0987654321,[Family]
+```

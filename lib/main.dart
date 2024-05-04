@@ -1,5 +1,16 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'models/person.dart';
+// import 'screens/settings_screen.dart';
+import 'screens/contacts_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/settings_screen.dart';
+import 'widgets/header.dart';
+import 'widgets/navigation.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,12 +39,47 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   int _selectedIndex = 0;
+  String filePath = '';
+  String filename = '';
 
   int get selectedIndex => _selectedIndex;
+  List<Person> persons = [];
 
   void setIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
+  }
+
+  void clearPersons() {
+    persons.clear();
+    notifyListeners();
+  }
+
+  void readPersons(String filePath) {
+    try {
+      File file = File(filePath);
+      List<String> lines = file.readAsLinesSync();
+
+      for (var line in lines) {
+        List<dynamic> csvData = line.split(',');
+        persons.add(Person.fromCsv(csvData));
+      }
+    } catch (e) {
+      print('Error reading file: $e');
+    }
+  }
+
+  void pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
+
+    if (result != null) {
+      filePath = result.files.single.path!;
+      filename = result.files.single.name;
+      readPersons(filePath);
+    }
   }
 }
 
@@ -45,13 +91,13 @@ class MyHomePage extends StatelessWidget {
     Widget page;
     switch (appState.selectedIndex) {
       case 0:
-        page = GeneratorPage();
+        page = HomeScreen();
         break;
       case 1:
-        page = Placeholder();
+        page = ContactsScreen();
         break;
       case 2:
-        page = Placeholder();
+        page = SettingsScreen();
         break;
       default:
         throw UnimplementedError('no widget for $appState.selectedIndex');
@@ -61,96 +107,10 @@ class MyHomePage extends StatelessWidget {
       body: Column(
         children: [
           Header(primaryColor: Theme.of(context).primaryColor),
-          Expanded(
-            child: Container(
-              child: page,
-            ),
-          ),
+          Expanded(child: Container(child: page)),
           Navigation(),
         ],
       ),
-    );
-  }
-}
-
-class Navigation extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    return BottomNavigationBar(
-      currentIndex: appState.selectedIndex,
-      onTap: (index) {
-        appState.setIndex(index);
-      },
-      items: [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.message),
-          label: 'Messages',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.people),
-          label: 'Contacts',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Settings',
-        ),
-      ],
-    );
-  }
-}
-
-class GeneratorPage extends StatelessWidget {
-  const GeneratorPage({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(
-              'Sélectionnez les catégories de personnes à contacter',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class Header extends StatelessWidget {
-  const Header({
-    super.key,
-    required this.primaryColor,
-  });
-
-  final Color primaryColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: Text(
-        'SMS Manager',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onPrimary,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      backgroundColor: primaryColor,
-      toolbarHeight: 75,
-      elevation: 6, // Add elevation for box shadow
-      shadowColor: Colors.grey, // Set shadow color
     );
   }
 }
