@@ -4,11 +4,18 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'models/person.dart';
-// import 'screens/settings_screen.dart';
+// Screens
 import 'screens/contacts_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/home_screen.dart';
+
+// Utils
+import 'utils/file_helper.dart';
+
+// Models
+import 'package:namer_app/models/contact_list.dart';
+
+// Widgets
 import 'widgets/header.dart';
 import 'widgets/navigation.dart';
 
@@ -40,45 +47,28 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   int _selectedIndex = 0;
   String filePath = '';
-  String filename = '';
 
   int get selectedIndex => _selectedIndex;
-  List<Person> persons = [];
+  ContactList contactList = ContactList([]);
 
   void setIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
   }
 
-  void clearPersons() {
-    persons.clear();
+  void clearContactList() {
+    contactList.clear();
     notifyListeners();
   }
 
-  void readPersons(String filePath) {
-    try {
-      File file = File(filePath);
-      List<String> lines = file.readAsLinesSync();
-
-      for (var line in lines) {
-        List<dynamic> csvData = line.split(',');
-        persons.add(Person.fromCsv(csvData));
-      }
-    } catch (e) {
-      print('Error reading file: $e');
-    }
-  }
-
   void pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-    );
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
-      filePath = result.files.single.path!;
-      filename = result.files.single.name;
-      readPersons(filePath);
+      File file = File(result.files.single.path!);
+      filePath = file.path;
+      contactList = FileHelper.getContactList(filePath);
+      notifyListeners();
     }
   }
 }

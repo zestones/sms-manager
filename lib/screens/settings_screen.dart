@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/main.dart';
+import 'package:namer_app/utils/file_helper.dart';
 import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -34,7 +35,7 @@ class SettingsScreen extends StatelessWidget {
             SizedBox(height: 20),
             ListTile(
               title: Text(
-                appState.filename,
+                FileHelper.getFileName(appState.filePath),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -50,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
             SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: appState.clearPersons,
+                onPressed: appState.clearContactList,
                 child: Text('Clear Persons'),
               ),
             ),
