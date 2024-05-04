@@ -2,8 +2,13 @@ import 'person.dart';
 
 class ContactList {
   List<Person> persons;
+  Set<String> categories = {};
 
-  ContactList(this.persons);
+  ContactList(this.persons) {
+    for (var person in persons) {
+      categories.addAll(person.categories);
+    }
+  }
 
   factory ContactList.fromCsvList(List<List<dynamic>> csvDataList) {
     List<Person> persons =

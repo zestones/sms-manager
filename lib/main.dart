@@ -50,6 +50,7 @@ class MyAppState extends ChangeNotifier {
 
   int get selectedIndex => _selectedIndex;
   ContactList contactList = ContactList([]);
+  ContactList filteredContactList = ContactList([]);
 
   void setIndex(int index) {
     _selectedIndex = index;
@@ -68,6 +69,7 @@ class MyAppState extends ChangeNotifier {
       File file = File(result.files.single.path!);
       filePath = file.path;
       contactList = FileHelper.getContactList(filePath);
+      filteredContactList = ContactList(contactList.persons);
       notifyListeners();
     }
   }

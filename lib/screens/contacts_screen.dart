@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:filter_list/filter_list.dart';
 
 import '../main.dart';
-import '../models/contact_list.dart';
 import '../models/person.dart';
 
 class ContactsScreen extends StatefulWidget {
@@ -11,8 +11,6 @@ class ContactsScreen extends StatefulWidget {
 }
 
 class _ContactsScreenState extends State<ContactsScreen> {
-  Set<String> selectedCategories = {};
-
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -29,127 +27,56 @@ class _ContactsScreenState extends State<ContactsScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.filter_list),
-            onPressed: () {
-              _showFilterDialog(
-                  context, appState.contactList, selectedCategories);
-            },
+            onPressed: () => openFilterDialog(context, appState),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Your contacts list',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: appState.contactList.persons.length,
-                itemBuilder: (context, index) {
-                  var person = appState.contactList.persons[index];
-                  bool isInsideSelected = false;
-                  for (var category in selectedCategories) {
-                    if (person.categories.contains(category)) {
-                      isInsideSelected = true;
-                      break;
-                    }
-                  }
-                  if (isInsideSelected || selectedCategories.isEmpty) {
-                    return Contact(person: person);
-                  } else {
-                    return SizedBox.shrink();
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
+      body: ListView.builder(
+        itemCount: appState.filteredContactList.persons.length,
+        itemBuilder: (context, index) {
+          var person = appState.filteredContactList.persons[index];
+          return Contact(person: person);
+        },
       ),
     );
   }
 
-  void _showFilterDialog(BuildContext context, ContactList contactList,
-      Set<String> selectedCategories) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Filter by Category'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: contactList.getCategories().map((category) {
-                return CategoryListTile(
-                    category: category,
-                    selectedCategories: selectedCategories,
-                    onChanged: ((value) => setState(() {
-                          if (value != null) {
-                            if (value) {
-                              selectedCategories.add(category);
-                            } else {
-                              selectedCategories.remove(category);
-                            }
-                          }
-                        })));
-              }).toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Filter contacts here using selectedCategories set
-                Navigator.of(context).pop();
-              },
-              child: Text('Done'),
-            ),
-          ],
-        );
+  void openFilterDialog(BuildContext context, MyAppState appState) async {
+    List<String> selectedCategories = [];
+
+    await FilterListDialog.display<String>(
+      context,
+      listData: appState.contactList.categories.toList(),
+      selectedListData: selectedCategories,
+      height: MediaQuery.of(context).size.height * 0.8,
+      headlineText: "Select Categories",
+      // searchFieldHint: "Search Here",
+      choiceChipLabel: (item) => item,
+      validateSelectedItem: (list, val) => list!.contains(val),
+      onItemSearch: (category, query) {
+        return category.toLowerCase().contains(query.toLowerCase());
       },
-    );
-  }
-}
 
-class CategoryListTile extends StatefulWidget {
-  const CategoryListTile({
-    Key? key,
-    required this.category,
-    required this.selectedCategories,
-    required this.onChanged, // Add onChanged callback
-  }) : super(key: key);
+      onApplyButtonClick: (list) {
+        setState(() => selectedCategories = List.from(list!));
+        Navigator.pop(context);
 
-  final String category;
-  final Set<String> selectedCategories;
-  final ValueChanged<bool?> onChanged; // Define onChanged callback
+        var filteredContacts = appState.contactList.persons.where((person) {
+          return person.categories
+              .any((category) => selectedCategories.contains(category));
+        }).toList();
 
-  @override
-  State<CategoryListTile> createState() => _CategoryListTileState();
-}
-
-class _CategoryListTileState extends State<CategoryListTile> {
-  @override
-  Widget build(BuildContext context) {
-    bool isSelected = widget.selectedCategories.contains(widget.category);
-
-    return CheckboxListTile(
-      title: Text(widget.category),
-      value: isSelected,
-      onChanged: widget.onChanged, // Use onChanged callback
+        appState.filteredContactList.persons = filteredContacts;
+      },
     );
   }
 }
 
 class Contact extends StatelessWidget {
   const Contact({
-    super.key,
+    Key? key,
     required this.person,
-  });
+  }) : super(key: key);
 
   final Person person;
 
