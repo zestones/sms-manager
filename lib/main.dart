@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme:
               ColorScheme.fromSeed(seedColor: Color.fromRGBO(48, 150, 207, 1)),
+          primaryColor: Color.fromRGBO(48, 150, 207, 1),
           fontFamily: 'Roboto',
         ),
         home: MyHomePage(),
@@ -63,7 +64,10 @@ class MyAppState extends ChangeNotifier {
   }
 
   void pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
 
     if (result != null) {
       File file = File(result.files.single.path!);
@@ -96,6 +100,7 @@ class MyHomePage extends StatelessWidget {
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           Header(primaryColor: Theme.of(context).primaryColor),

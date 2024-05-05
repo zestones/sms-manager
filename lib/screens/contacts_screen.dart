@@ -11,6 +11,8 @@ class ContactsScreen extends StatefulWidget {
 }
 
 class _ContactsScreenState extends State<ContactsScreen> {
+  List<String> selectedCategories = [];
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -42,21 +44,17 @@ class _ContactsScreenState extends State<ContactsScreen> {
   }
 
   void openFilterDialog(BuildContext context, MyAppState appState) async {
-    List<String> selectedCategories = [];
-
     await FilterListDialog.display<String>(
       context,
       listData: appState.contactList.categories.toList(),
       selectedListData: selectedCategories,
       height: MediaQuery.of(context).size.height * 0.8,
       headlineText: "Select Categories",
-      // searchFieldHint: "Search Here",
       choiceChipLabel: (item) => item,
       validateSelectedItem: (list, val) => list!.contains(val),
       onItemSearch: (category, query) {
         return category.toLowerCase().contains(query.toLowerCase());
       },
-
       onApplyButtonClick: (list) {
         setState(() => selectedCategories = List.from(list!));
         Navigator.pop(context);
