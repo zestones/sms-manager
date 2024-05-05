@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<String> selectedCategories = [];
+  String message = '';
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +51,12 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           Divider(),
-          TextArea(),
-          SendButton(),
+          TextArea(onTextChanged: (text) {
+            setState(() {
+              message = text; // Update the message when text changes
+            });
+          }),
+          SendButton(message: message),
         ],
       ),
     );
@@ -85,8 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class SendButton extends StatelessWidget {
+  final String message;
+
   const SendButton({
     super.key,
+    required this.message,
   });
 
   @override
@@ -97,7 +105,7 @@ class SendButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () {
           SmsHelper.sendSms(
-              'Hello, World!',
+              message,
               appState.filteredContactList.persons
                   .map((person) => person.phoneNumber)
                   .toList());
@@ -109,9 +117,12 @@ class SendButton extends StatelessWidget {
 }
 
 class TextArea extends StatelessWidget {
+  final ValueChanged<String> onTextChanged; // Callback to notify text changes
+
   const TextArea({
-    super.key,
-  });
+    required this.onTextChanged, // Require the callback parameter
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +130,7 @@ class TextArea extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: TextField(
+          onChanged: onTextChanged, // Call the callback when text changes
           decoration: InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'Type your message here',
