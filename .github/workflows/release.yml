@@ -3,7 +3,7 @@ name: Flutter CI
 on:
   push:
     branches:
-      - 6-generate-apk-build-for-android
+      - main
 
 jobs:
   build:
