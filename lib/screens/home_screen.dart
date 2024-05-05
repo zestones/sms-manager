@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:namer_app/utils/sms_helper.dart';
 import 'package:provider/provider.dart';
 
 import 'package:filter_list/filter_list.dart';
@@ -90,10 +91,17 @@ class SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
     return Padding(
       padding: const EdgeInsets.all(20),
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          SmsHelper.sendSms(
+              'Hello, World!',
+              appState.filteredContactList.persons
+                  .map((person) => person.phoneNumber)
+                  .toList());
+        },
         child: Text('Send Message'),
       ),
     );
