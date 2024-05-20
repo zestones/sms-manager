@@ -1,63 +1,109 @@
 import 'package:flutter/material.dart';
-import 'package:namer_app/main.dart';
-import 'package:namer_app/utils/file_helper.dart';
 import 'package:provider/provider.dart';
+import 'package:namer_app/main.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key});
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    var theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset(
+              'lib/assets/logo.png',
+              height: 90,
+              width: 90,
+            ),
+            SizedBox(height: 5),
             Text(
-              'Manage your settings here',
+              'Settings',
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onBackground,
               ),
             ),
-            SizedBox(height: 20),
-            ListTile(
-              title: Text(
-                FileHelper.getFileName(appState.filePath),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              trailing: ElevatedButton(
-                onPressed: appState.pickFile,
-                child: Text('Import File'),
-              ),
-            ),
-            Divider(),
-            // Add a button to clear the list of persons
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: appState.clearContactList,
-                child: Text('Clear Persons'),
-              ),
+            SizedBox(height: 10),
+            Divider(
+              color: theme.colorScheme.onBackground,
+              thickness: 1,
             ),
           ],
         ),
+        centerTitle: true,
+        toolbarHeight: 150,
+        backgroundColor: theme.colorScheme.background,
       ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 20),
+          ListTile(
+            leading: Icon(
+              Icons.brightness_6,
+              color: theme.colorScheme.primary,
+            ),
+            title: Text(
+              'Dark Theme',
+              style: TextStyle(
+                color: theme.colorScheme.onBackground,
+              ),
+            ),
+            trailing: Switch(
+              value: appState.isDarkTheme,
+              onChanged: (bool value) {
+                appState.toggleTheme();
+              },
+              activeColor: theme.colorScheme.primary,
+            ),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.account_circle,
+              color: theme.colorScheme.primary,
+            ),
+            title: Text(
+              'Account',
+              style: TextStyle(
+                color: theme.colorScheme.onBackground,
+              ),
+            ),
+            onTap: () {
+              // Navigator.pushNamed(context, '/language');
+            },
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              color: theme.colorScheme.onBackground,
+            ),
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.storage,
+              color: theme.colorScheme.primary,
+            ),
+            title: Text(
+              'Data & Storage',
+              style: TextStyle(
+                color: theme.colorScheme.onBackground,
+              ),
+            ),
+            onTap: () {
+              // Navigator.pushNamed(context, '/storage');
+            },
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              color: theme.colorScheme.onBackground,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: theme.colorScheme.background,
     );
   }
 }

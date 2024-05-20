@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+    // var appState = context.watch<MyAppState>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.filter_list),
-            onPressed: () => openFilterDialog(context, appState),
+            onPressed: () => {},
             tooltip: 'Filter Messages',
           ),
         ],
@@ -56,65 +56,65 @@ class _HomeScreenState extends State<HomeScreen> {
               message = text; // Update the message when text changes
             });
           }),
-          SendButton(message: message),
+          // SendButton(message: message),
         ],
       ),
     );
   }
 
-  void openFilterDialog(BuildContext context, MyAppState appState) async {
-    await FilterListDialog.display<String>(
-      context,
-      listData: appState.contactList.categories.toList(),
-      selectedListData: selectedCategories,
-      height: MediaQuery.of(context).size.height * 0.8,
-      headlineText: "Select Categories",
-      choiceChipLabel: (item) => item,
-      validateSelectedItem: (list, val) => list!.contains(val),
-      onItemSearch: (category, query) {
-        return category.toLowerCase().contains(query.toLowerCase());
-      },
-      onApplyButtonClick: (list) {
-        setState(() => selectedCategories = List.from(list!));
-        Navigator.pop(context);
+  // void openFilterDialog(BuildContext context, MyAppState appState) async {
+  //   await FilterListDialog.display<String>(
+  //     context,
+  //     listData: appState.contactList.categories.toList(),
+  //     selectedListData: selectedCategories,
+  //     height: MediaQuery.of(context).size.height * 0.8,
+  //     headlineText: "Select Categories",
+  //     choiceChipLabel: (item) => item,
+  //     validateSelectedItem: (list, val) => list!.contains(val),
+  //     onItemSearch: (category, query) {
+  //       return category.toLowerCase().contains(query.toLowerCase());
+  //     },
+  //     onApplyButtonClick: (list) {
+  //       setState(() => selectedCategories = List.from(list!));
+  //       Navigator.pop(context);
 
-        var filteredContacts = appState.contactList.persons.where((person) {
-          return person.categories
-              .any((category) => selectedCategories.contains(category));
-        }).toList();
+  //       var filteredContacts = appState.contactList.persons.where((person) {
+  //         return person.categories
+  //             .any((category) => selectedCategories.contains(category));
+  //       }).toList();
 
-        appState.filteredContactList.persons = filteredContacts;
-      },
-    );
-  }
+  //       appState.filteredContactList.persons = filteredContacts;
+  //     },
+  //   );
+  // }
 }
 
-class SendButton extends StatelessWidget {
-  final String message;
+// class SendButton extends StatelessWidget {
+//   final String message;
 
-  const SendButton({
-    super.key,
-    required this.message,
-  });
+//   const SendButton({
+//     super.key,
+//     required this.message,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: ElevatedButton(
-        onPressed: () {
-          SmsHelper.sendSms(
-              message,
-              appState.filteredContactList.persons
-                  .map((person) => person.phoneNumber)
-                  .toList());
-        },
-        child: Text('Send Message'),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     var appState = context.watch<MyAppState>();
+//     return Padding(
+//       padding: const EdgeInsets.all(20),
+//       child: ElevatedButton(
+//         onPressed: () {
+//           SmsHelper.sendSms(
+//               message,
+//               appState.filteredContactList.persons
+//                   .map((person) => person.phoneNumber)
+//                   .toList());
+//         },
+//         child: Text('Send Message'),
+//       ),
+//     );
+//   }
+// }
 
 class TextArea extends StatelessWidget {
   final ValueChanged<String> onTextChanged; // Callback to notify text changes

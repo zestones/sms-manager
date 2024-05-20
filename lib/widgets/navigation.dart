@@ -6,12 +6,14 @@ class Navigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    var theme = Theme.of(context);
 
     return BottomNavigationBar(
       currentIndex: appState.selectedIndex,
-      onTap: (index) {
-        appState.setIndex(index);
-      },
+      onTap: (index) => appState.setIndex(index),
+      selectedItemColor: theme.colorScheme.primary,
+      unselectedItemColor: theme.colorScheme.secondary,
+      backgroundColor: theme.colorScheme.background,
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.message),
