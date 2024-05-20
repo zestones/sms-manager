@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:namer_app/screens/settings/account_screen.dart';
+import 'package:namer_app/screens/settings/data_storage_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:namer_app/main.dart';
 
@@ -50,60 +52,72 @@ class SettingsScreen extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             title: Text(
-              'Dark Theme',
-              style: TextStyle(
-                color: theme.colorScheme.onBackground,
-              ),
+              'Thème Sombre',
+              style: TextStyle(color: theme.colorScheme.onBackground),
             ),
             trailing: Switch(
               value: appState.isDarkTheme,
-              onChanged: (bool value) {
-                appState.toggleTheme();
-              },
+              onChanged: (bool value) => appState.toggleTheme(),
               activeColor: theme.colorScheme.primary,
             ),
           ),
-          ListTile(
-            leading: Icon(
-              Icons.account_circle,
-              color: theme.colorScheme.primary,
-            ),
-            title: Text(
-              'Account',
-              style: TextStyle(
-                color: theme.colorScheme.onBackground,
-              ),
-            ),
-            onTap: () {
-              // Navigator.pushNamed(context, '/language');
-            },
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              color: theme.colorScheme.onBackground,
-            ),
+          SettingOption(
+            theme: theme,
+            pageRoute: AccountScreen(),
+            title: 'Compte',
+            icon: Icons.account_circle,
           ),
-          ListTile(
-            leading: Icon(
-              Icons.storage,
-              color: theme.colorScheme.primary,
-            ),
-            title: Text(
-              'Data & Storage',
-              style: TextStyle(
-                color: theme.colorScheme.onBackground,
-              ),
-            ),
-            onTap: () {
-              // Navigator.pushNamed(context, '/storage');
-            },
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              color: theme.colorScheme.onBackground,
-            ),
+          SettingOption(
+            theme: theme,
+            pageRoute: DataStorageScreen(),
+            title: 'Données & Stockage',
+            icon: Icons.storage,
           ),
         ],
       ),
       backgroundColor: theme.colorScheme.background,
+    );
+  }
+}
+
+class SettingOption extends StatelessWidget {
+  const SettingOption({
+    super.key,
+    required this.theme,
+    required this.pageRoute,
+    required this.title,
+    required this.icon,
+  });
+
+  final ThemeData theme;
+  final Widget pageRoute;
+  final String title;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: theme.colorScheme.primary,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => pageRoute),
+        );
+      },
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        color: theme.colorScheme.onBackground,
+        size: 20,
+      ),
     );
   }
 }

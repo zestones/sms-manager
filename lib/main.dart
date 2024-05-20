@@ -86,10 +86,10 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   int _selectedIndex = 0;
   String filePath = '';
+  String storagePath = '';
 
   bool _isDarkTheme = false;
   bool get isDarkTheme => _isDarkTheme;
-
   int get selectedIndex => _selectedIndex;
   // ContactGroup contactList = ContactGroup();
   // ContactGroup filteredContactList = ContactGroup([]);
@@ -121,6 +121,11 @@ class MyAppState extends ChangeNotifier {
 
   void toggleTheme() {
     _isDarkTheme = !_isDarkTheme;
+    notifyListeners();
+  }
+
+  void updateStoragePath(String path) {
+    storagePath = path;
     notifyListeners();
   }
 }
