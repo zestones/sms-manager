@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:namer_app/service/local_notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:namer_app/main.dart';
 
@@ -27,8 +28,19 @@ class DataStorageScreen extends StatelessWidget {
       if (result != null) {
         File file = File(result.files.single.path!);
         appState.filePath = file.path;
-        // appState.contactList = FileHelper.getContactList(appState.filePath);
-        // appState.filteredContactList = ContactList(appState.contactList.persons);
+        // Let's process each line in the file and show the progress
+        for (int i = 1; i <= 100; i++) {
+          await Future.delayed(
+              Duration(milliseconds: 50)); // Simulate some delay
+          appState.progress = i;
+          // Show progress notification
+          await LocalNotificationService.showProgressNotification(
+            title: 'Importation des contacts', // Title of the notification
+            body: 'Progression: $i%', // Body of the notification
+            progress: i, // Current progress value
+            maxProgress: 100, // Maximum progress value
+          );
+        }
       }
     }
 
@@ -52,26 +64,10 @@ class DataStorageScreen extends StatelessWidget {
               callback: selectStoragePath,
               title: 'Emplacement de stockage',
               subtitle: 'Aucun chemin de stockage sélectionné'),
-          Container(
-            padding: EdgeInsets.all(16.0),
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: theme.colorScheme.secondary,
-                ),
-                SizedBox(height: 7.0),
-                Text(
-                  'Le dossier sélectionné sera utilisé pour les sauvegardes et l\'exportation des contacts.',
-                  style: TextStyle(
-                    color: theme.colorScheme.onBackground,
-                    fontSize: 14.0,
-                  ),
-                ),
-              ],
-            ),
+          InfosNote(
+            theme: theme,
+            text:
+                'Le dossier sélectionné sera utilisé pour les sauvegardes et l\'exportation des contacts.',
           ),
 
           // Container with button to create a backup or to restore a backup
@@ -107,6 +103,7 @@ class DataStorageScreen extends StatelessWidget {
               ),
             ),
           ),
+
           // Container with button to manage contacts
           ButtonOutline(
               theme: theme,
@@ -117,6 +114,42 @@ class DataStorageScreen extends StatelessWidget {
         ],
       ),
       backgroundColor: theme.colorScheme.background,
+    );
+  }
+}
+
+class InfosNote extends StatelessWidget {
+  const InfosNote({
+    super.key,
+    required this.theme,
+    required this.text,
+  });
+
+  final ThemeData theme;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16.0),
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: theme.colorScheme.secondary,
+          ),
+          SizedBox(height: 7.0),
+          Text(
+            text,
+            style: TextStyle(
+              color: theme.colorScheme.onBackground,
+              fontSize: 14.0,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

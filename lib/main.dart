@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/service/local_notification_service.dart';
 import 'package:provider/provider.dart';
 
 // Screens
@@ -59,8 +59,10 @@ final ThemeData darkTheme = ThemeData(
   fontFamily: 'Roboto',
 );
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalNotificationService.init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -94,6 +96,24 @@ class MyAppState extends ChangeNotifier {
   // ContactGroup contactList = ContactGroup();
   // ContactGroup filteredContactList = ContactGroup([]);
 
+  int progress = 0;
+
+  Future<void> insertContactsIntoDb(File file) async {
+    // Simulate inserting contacts
+
+    // for (int i = 1; i <= 100; i++) {
+    //   await Future.delayed(Duration(milliseconds: 50)); // Simulate some delay
+    //   progress = i;
+    //   LocalNotificationService().showNotification(
+    //     title: 'Importation des contacts',
+    //     body: 'Progression: $progress%',
+    //     id: 0,
+    //   );
+    //   print('Progress: $progress%');
+    //   notifyListeners();
+    // }
+  }
+
   void setIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
@@ -102,21 +122,6 @@ class MyAppState extends ChangeNotifier {
   void clearContactList() {
     // contactList.clear();
     notifyListeners();
-  }
-
-  void pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-    );
-
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      filePath = file.path;
-      // contactList = FileHelper.getContactList(filePath);
-      // filteredContactList = ContactList(contactList.persons);
-      notifyListeners();
-    }
   }
 
   void toggleTheme() {
@@ -139,11 +144,9 @@ class MyHomePage extends StatelessWidget {
     switch (appState.selectedIndex) {
       case 0:
         page = HomeScreen();
-
         break;
       case 1:
         page = HomeScreen();
-
         // page = ContactsScreen();
         break;
       case 2:
