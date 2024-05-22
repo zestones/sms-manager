@@ -16,6 +16,19 @@ class ContactsScreen extends StatefulWidget {
 class ContactsScreenState extends State<ContactsScreen> {
   List<FilterOption> _filterOptions = [];
 
+  Map<String, List<Contact>> groupContactByFirstLetter(List<Contact> contacts) {
+    Map<String, List<Contact>> groupedContacts = {};
+    for (var contact in contacts) {
+      String firstLetter =
+          contact.firstName.isNotEmpty ? contact.firstName[0] : '#';
+      if (!groupedContacts.containsKey(firstLetter)) {
+        groupedContacts[firstLetter] = [];
+      }
+      groupedContacts[firstLetter]!.add(contact);
+    }
+    return groupedContacts;
+  }
+
   @override
   Widget build(BuildContext context) {
     final contactService = Provider.of<ContactService>(context, listen: false);
@@ -52,19 +65,52 @@ class ContactsScreenState extends State<ContactsScreen> {
             return Center(child: Text('No contacts found.'));
           } else {
             return FutureBuilder<List<Contact>>(
-              future: _applyFilter(), // Use _applyFilter as future
-              builder: (context, filterSnapshot) {
-                if (filterSnapshot.connectionState == ConnectionState.waiting) {
+              future: contactService.getAllContact(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
-                } else if (filterSnapshot.hasError) {
-                  return Center(child: Text('Error: ${filterSnapshot.error}'));
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No contacts found.'));
                 } else {
-                  final filteredContacts = filterSnapshot.data!;
-                  return ListView.builder(
-                    itemCount: filteredContacts.length,
-                    itemBuilder: (context, index) {
-                      final contact = filteredContacts[index];
-                      return ContactTile(contact: contact);
+                  return FutureBuilder<List<Contact>>(
+                    future: _applyFilter(),
+                    builder: (context, filterSnapshot) {
+                      if (filterSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (filterSnapshot.hasError) {
+                        return Center(
+                            child: Text('Error: ${filterSnapshot.error}'));
+                      } else {
+                        var filteredContacts = filterSnapshot.data!;
+                        filteredContacts.sort((a, b) => a.firstName
+                            .toLowerCase()
+                            .compareTo(b.firstName.toLowerCase()));
+
+                        Map<String, List<Contact>> groupedContacts =
+                            groupContactByFirstLetter(filteredContacts);
+
+                        return ListView.builder(
+                          itemCount: groupedContacts.length * 2 - 1,
+                          itemBuilder: (context, index) {
+                            if (index.isOdd) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                              );
+                            } else {
+                              // Header or ContactTile
+                              int headerIndex = index ~/ 2;
+                              String letter =
+                                  groupedContacts.keys.toList()[headerIndex];
+                              return _buildHeaderOrContactTile(
+                                  letter, groupedContacts[letter]!);
+                            }
+                          },
+                        );
+                      }
                     },
                   );
                 }
@@ -73,6 +119,33 @@ class ContactsScreenState extends State<ContactsScreen> {
           }
         },
       ),
+    );
+  }
+
+  Widget _buildHeaderOrContactTile(String letter, List<Contact> contacts) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            letter,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: contacts.length,
+          itemBuilder: (context, index) {
+            final contact = contacts[index];
+            return ContactTile(contact: contact);
+          },
+        ),
+      ],
     );
   }
 
@@ -201,7 +274,9 @@ class ContactTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).primaryColor,
         child: Text(
-          contact.lastName.isNotEmpty ? contact.lastName[0].toUpperCase() : '',
+          contact.firstName.isNotEmpty
+              ? contact.firstName[0].toUpperCase()
+              : '',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.white,
