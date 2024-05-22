@@ -142,7 +142,12 @@ class ContactsScreenState extends State<ContactsScreen> {
           itemCount: contacts.length,
           itemBuilder: (context, index) {
             final contact = contacts[index];
-            return ContactTile(contact: contact);
+            return Column(
+              children: [
+                SizedBox(height: 8),
+                ContactTile(contact: contact),
+              ],
+            );
           },
         ),
       ],
@@ -270,6 +275,7 @@ class ContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).primaryColor,
@@ -283,8 +289,18 @@ class ContactTile extends StatelessWidget {
           ),
         ),
       ),
-      title: Text('${contact.firstName} ${contact.lastName}'),
-      subtitle: Text(contact.phoneNumber),
+      title: Text(
+        '${contact.firstName} ${contact.lastName}',
+        style: TextStyle(
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+      subtitle: Text(contact.phoneNumber,
+          style: TextStyle(
+            color: theme.colorScheme.onBackground,
+            fontSize: 12.0,
+            fontStyle: FontStyle.italic,
+          )),
     );
   }
 }
