@@ -10,6 +10,10 @@ class GroupService {
     await _contactRepository.insertGroup(group);
   }
 
+  Future<List<Group>> getAllGroup() async {
+    return await _contactRepository.getAllGroup();
+  }
+
   Future<void> deleteAllGroup() async {
     await _contactRepository.deleteAllGroup();
   }

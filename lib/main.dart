@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:namer_app/screens/contacts_screen.dart';
 import 'package:namer_app/service/contact_list_service.dart';
 import 'package:namer_app/service/contact_service.dart';
 import 'package:namer_app/service/group_service.dart';
@@ -213,7 +214,7 @@ class MyHomePage extends StatelessWidget {
         page = HomeScreen();
         break;
       case 1:
-        page = HomeScreen();
+        page = ContactsScreen();
         // page = ContactsScreen();
         break;
       case 2:

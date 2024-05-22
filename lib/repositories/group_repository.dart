@@ -23,6 +23,15 @@ class GroupRepository {
     return Group.fromMap(maps.first);
   }
 
+  Future<List<Group>> getAllGroup() async {
+    final db = await _databaseHelper.database;
+    final maps = await db!.query('Groups');
+
+    return List.generate(maps.length, (i) {
+      return Group.fromMap(maps[i]);
+    });
+  }
+
   Future<void> deleteAllGroup() async {
     final db = await _databaseHelper.database;
     await db!.execute('DELETE FROM Groups');

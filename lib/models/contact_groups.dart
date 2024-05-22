@@ -21,9 +21,16 @@ class ContactGroup {
     );
   }
 
+  // function that map the contact with his group
+  factory ContactGroup.fromContactGroup(int contactId, int groupId) {
+    return ContactGroup(
+      contactId: contactId,
+      groupId: groupId,
+    );
+  }
+
   @override
   String toString() {
     return 'ContactGroup{contactId: $contactId, groupId: $groupId}';
   }
 }
-

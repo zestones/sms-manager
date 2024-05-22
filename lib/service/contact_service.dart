@@ -6,8 +6,12 @@ class ContactService {
 
   ContactService(this._contactRepository);
 
-  Future<void> insertContact(Contact contact) async {
+  void insertContact(Contact contact) async {
     await _contactRepository.insertContact(contact);
+  }
+
+  Future<List<Contact>> getAllContact() async {
+    return await _contactRepository.getAllContact();
   }
 
   Future<void> deleteAllContact() async {

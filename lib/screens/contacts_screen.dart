@@ -1,94 +1,294 @@
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import 'package:filter_list/filter_list.dart';
+import 'package:flutter/material.dart';
+import 'package:namer_app/models/contact.dart';
+import 'package:namer_app/models/filter_option.dart';
+import 'package:namer_app/models/group.dart';
+import 'package:namer_app/service/contact_list_service.dart';
+import 'package:namer_app/service/contact_service.dart';
+import 'package:namer_app/service/group_service.dart';
+import 'package:namer_app/widgets/tri_state_checkbox.dart';
+import 'package:provider/provider.dart';
 
-// import '../main.dart';
-// import '../models/contact.dart';
+class ContactsScreen extends StatefulWidget {
+  @override
+  ContactsScreenState createState() => ContactsScreenState();
+}
 
-// class ContactsScreen extends StatefulWidget {
-//   @override
-//   State<ContactsScreen> createState() => _ContactsScreenState();
-// }
+class ContactsScreenState extends State<ContactsScreen> {
+  List<FilterOption> _filterOptions = [];
 
-// class _ContactsScreenState extends State<ContactsScreen> {
-//   List<String> selectedCategories = [];
+  @override
+  Widget build(BuildContext context) {
+    final contactService = Provider.of<ContactService>(context, listen: false);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     var appState = context.watch<MyAppState>();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Contacts'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: ContactSearchDelegate(contactService),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.filter_list),
+            onPressed: () {
+              _showFilterOptions(context);
+            },
+          ),
+        ],
+      ),
+      body: FutureBuilder<List<Contact>>(
+        future: contactService.getAllContact(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No contacts found.'));
+          } else {
+            return FutureBuilder<List<Contact>>(
+              future: _applyFilter(), // Use _applyFilter as future
+              builder: (context, filterSnapshot) {
+                if (filterSnapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (filterSnapshot.hasError) {
+                  return Center(child: Text('Error: ${filterSnapshot.error}'));
+                } else {
+                  final filteredContacts = filterSnapshot.data!;
+                  return ListView.builder(
+                    itemCount: filteredContacts.length,
+                    itemBuilder: (context, index) {
+                      final contact = filteredContacts[index];
+                      return ContactTile(contact: contact);
+                    },
+                  );
+                }
+              },
+            );
+          }
+        },
+      ),
+    );
+  }
 
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(
-//           'Contacts',
-//           style: TextStyle(
-//             fontSize: 20,
-//             fontWeight: FontWeight.bold,
-//           ),
-//         ),
-//         actions: [
-//           IconButton(
-//             icon: Icon(Icons.filter_list),
-//             onPressed: () => openFilterDialog(context, appState),
-//           ),
-//         ],
-//       ),
-//       body: ListView.builder(
-//         itemCount: appState.filteredContactList.persons.length,
-//         itemBuilder: (context, index) {
-//           var person = appState.filteredContactList.persons[index];
-//           return Contact(person: person);
-//         },
-//       ),
-//     );
-//   }
+  void _showFilterOptions(BuildContext context) {
+    final groupService = Provider.of<GroupService>(context, listen: false);
+    var theme = Theme.of(context);
 
-//   void openFilterDialog(BuildContext context, MyAppState appState) async {
-//     await FilterListDialog.display<String>(
-//       context,
-//       listData: appState.contactList.categories.toList(),
-//       selectedListData: selectedCategories,
-//       height: MediaQuery.of(context).size.height * 0.8,
-//       headlineText: "Select Categories",
-//       choiceChipLabel: (item) => item,
-//       validateSelectedItem: (list, val) => list!.contains(val),
-//       onItemSearch: (category, query) {
-//         return category.toLowerCase().contains(query.toLowerCase());
-//       },
-//       onApplyButtonClick: (list) {
-//         setState(() => selectedCategories = List.from(list!));
-//         Navigator.pop(context);
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(16.0),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return ClipRRect(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(16.0),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                color: theme.colorScheme.surface,
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _filterOptions = []);
+                        Navigator.pop(context);
+                      },
+                      child: Text('Réinitialiser'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(
+                            () => _filterOptions = _filterOptions.toList());
+                        Navigator.pop(context);
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            theme.colorScheme.onBackground),
+                        foregroundColor: MaterialStateProperty.all<Color>(
+                            theme.colorScheme.background),
+                      ),
+                      child: Text('Filter'),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1),
+              FutureBuilder<List<Group>>(
+                future: groupService.getAllGroup(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No groups found.'));
+                  } else {
+                    final groups = snapshot.data!;
+                    // Initialize filter options if not initialized yet
+                    if (_filterOptions.isEmpty) {
+                      _filterOptions = List.generate(groups.length, (index) {
+                        return FilterOption(groups[index].name);
+                      });
+                    }
 
-//         var filteredContacts = appState.contactList.persons.where((person) {
-//           return person.categories
-//               .any((category) => selectedCategories.contains(category));
-//         }).toList();
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: groups.length,
+                      itemBuilder: (context, index) {
+                        final group = groups[index];
+                        final filterOption = _filterOptions[index];
+                        return TriStateCheckbox(
+                          title: group.name,
+                          value: filterOption.state,
+                          onChanged: (state) =>
+                              _filterOptions[index].state = state!,
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
-//         appState.filteredContactList.persons = filteredContacts;
-//       },
-//     );
-//   }
-// }
+  Future<List<Contact>> _applyFilter() async {
+    final contactListService =
+        Provider.of<ContactListService>(context, listen: false);
 
-// class Contact extends StatelessWidget {
-//   const Contact({
-//     Key? key,
-//     required this.person,
-//   }) : super(key: key);
+    for (var option in _filterOptions) {
+      print('${option.groupName}: ${option.state}');
+    }
 
-//   final Person person;
+    List<Contact> filteredContacts =
+        await contactListService.getContactListByGroups(_filterOptions);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListTile(
-//       title: Text('${person.firstName} ${person.lastName}'),
-//       subtitle: Text(person.phoneNumber),
-//       trailing: Wrap(
-//         spacing: 12,
-//         children: person.categories
-//             .map((category) => Chip(label: Text(category)))
-//             .toList(),
-//       ),
-//     );
-//   }
-// }
+    contactListService
+        .getContactListByGroups(_filterOptions)
+        .then((value) => print(value));
+
+    return filteredContacts;
+  }
+}
+
+class ContactTile extends StatelessWidget {
+  const ContactTile({
+    super.key,
+    required this.contact,
+  });
+
+  final Contact contact;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).primaryColor,
+        child: Text(
+          contact.lastName.isNotEmpty ? contact.lastName[0].toUpperCase() : '',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      title: Text('${contact.firstName} ${contact.lastName}'),
+      subtitle: Text(contact.phoneNumber),
+    );
+  }
+}
+
+class ContactSearchDelegate extends SearchDelegate {
+  final ContactService contactService;
+
+  ContactSearchDelegate(this.contactService);
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return FutureBuilder<List<Contact>>(
+      future: contactService.getAllContact(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No contacts found.'));
+        } else {
+          final contacts = snapshot.data!;
+          final filteredContacts = contacts.where((contact) {
+            final fullName =
+                '${contact.firstName} ${contact.lastName}'.toLowerCase();
+            return fullName.contains(query.toLowerCase());
+          }).toList();
+
+          return ListView.builder(
+            itemCount: filteredContacts.length,
+            itemBuilder: (context, index) {
+              final contact = filteredContacts[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  child: Text(
+                    contact.lastName.isNotEmpty
+                        ? contact.lastName[0].toUpperCase()
+                        : '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                title: Text('${contact.firstName} ${contact.lastName}'),
+                subtitle: Text(contact.phoneNumber),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return Container();
+  }
+}
