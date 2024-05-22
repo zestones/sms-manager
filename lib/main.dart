@@ -1,22 +1,28 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
-import 'package:namer_app/service/local_notification_service.dart';
+import 'package:namer_app/service/contact_list_service.dart';
+import 'package:namer_app/service/contact_service.dart';
+import 'package:namer_app/service/group_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+
+// Services
+import 'package:namer_app/service/load_csv_contact_list_service.dart';
+import 'package:namer_app/service/local_notification_service.dart';
 
 // Screens
 // import 'screens/contacts_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/home_screen.dart';
 
-// Utils
-// import 'utils/file_helper.dart';
+import 'package:namer_app/repositories/contact_list_repository.dart';
+import 'package:namer_app/repositories/contact_repository.dart';
+import 'package:namer_app/repositories/group_repository.dart';
 
-// Models
-// import 'package:namer_app/models/contact_groups.dart';
+// Utils
+import 'package:namer_app/utils/database_helper.dart';
 
 // Widgets
-// import 'widgets/header.dart';
 import 'widgets/navigation.dart';
 
 final ThemeData lightTheme = ThemeData(
@@ -62,7 +68,53 @@ final ThemeData darkTheme = ThemeData(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalNotificationService.init();
-  runApp(const MyApp());
+
+  final databaseHelper = DatabaseHelper();
+  await databaseHelper.init();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<ContactListRepository>(
+            create: (_) => ContactListRepository(databaseHelper)),
+        Provider<ContactRepository>(
+            create: (_) => ContactRepository(databaseHelper)),
+        Provider<GroupRepository>(
+            create: (_) => GroupRepository(databaseHelper)),
+
+        // Initialize the services, depending on repositories
+        ProxyProvider<ContactListRepository, ContactListService>(
+          update: (context, contactListRepository, _) =>
+              ContactListService(contactListRepository),
+        ),
+        ProxyProvider<ContactRepository, ContactService>(
+          update: (context, contactRepository, _) =>
+              ContactService(contactRepository),
+        ),
+        ProxyProvider<GroupRepository, GroupService>(
+          update: (context, groupRepository, _) =>
+              GroupService(groupRepository),
+        ),
+
+        ProxyProvider3<ContactListRepository, ContactRepository,
+            GroupRepository, LoadCSVContactListService>(
+          update: (
+            context,
+            contactListRepository,
+            contactRepository,
+            groupRepository,
+            _,
+          ) =>
+              LoadCSVContactListService(
+            contactListRepository,
+            contactRepository,
+            groupRepository,
+          ),
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -93,25 +145,40 @@ class MyAppState extends ChangeNotifier {
   bool _isDarkTheme = false;
   bool get isDarkTheme => _isDarkTheme;
   int get selectedIndex => _selectedIndex;
-  // ContactGroup contactList = ContactGroup();
-  // ContactGroup filteredContactList = ContactGroup([]);
+  bool _isImportingFile = false;
+  bool get isImportingFile => _isImportingFile;
 
-  int progress = 0;
+  void setImportingFile(bool value) {
+    _isImportingFile = value;
+    notifyListeners();
+  }
 
-  Future<void> insertContactsIntoDb(File file) async {
-    // Simulate inserting contacts
+  Future<void> insertContactsIntoDb(
+      LoadCSVContactListService loadCSVContactListService, File file) async {
+    setImportingFile(true);
 
-    // for (int i = 1; i <= 100; i++) {
-    //   await Future.delayed(Duration(milliseconds: 50)); // Simulate some delay
-    //   progress = i;
-    //   LocalNotificationService().showNotification(
-    //     title: 'Importation des contacts',
-    //     body: 'Progression: $progress%',
-    //     id: 0,
-    //   );
-    //   print('Progress: $progress%');
-    //   notifyListeners();
-    // }
+    try {
+      // Call the service to load contacts from the CSV file
+      await loadCSVContactListService.call(file.path);
+
+      // Notify success (Optional: Use notifications or other methods)
+      await LocalNotificationService.showNotification(
+        title: 'Importation terminée',
+        body: 'Tous les contacts ont été importés avec succès.',
+        payload: 'contacts_imported',
+      );
+    } catch (e) {
+      print('Error importing contacts: $e');
+
+      // Handle errors (Optional: Use notifications or other methods)
+      await LocalNotificationService.showNotification(
+        title: 'Erreur d\'importation',
+        body: 'Une erreur s\'est produite lors de l\'importation des contacts.',
+        payload: 'contacts_import_error',
+      );
+    } finally {
+      setImportingFile(false);
+    }
   }
 
   void setIndex(int index) {

@@ -41,7 +41,7 @@ class LocalNotificationService {
   }
 
   // show a simple notification
-  static Future showSimpleNotification({
+  static Future showNotification({
     required String title,
     required String body,
     required String payload,

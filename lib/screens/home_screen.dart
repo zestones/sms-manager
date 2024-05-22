@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:namer_app/utils/sms_helper.dart';
-import 'package:provider/provider.dart';
-
-import 'package:filter_list/filter_list.dart';
-import '../main.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({

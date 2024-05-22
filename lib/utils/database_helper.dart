@@ -2,11 +2,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static Future<Database>? database;
+  Future<Database>? database;
+  String databaseName = 'contact_list.db';
 
-  static Future<void> initializeDatabase() async {
+  Future<void> init() async {
     database = openDatabase(
-      join(await getDatabasesPath(), 'contact_list.db'),
+      join(await getDatabasesPath(), databaseName),
       onCreate: (db, version) async {
         await db.execute(
           '''
@@ -14,7 +15,7 @@ class DatabaseHelper {
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               first_name TEXT NOT NULL,
               last_name TEXT NOT NULL,
-              phone_number TEXT NOT NULL UNIQUE
+              phone_number TEXT NOT NULL
             );
           ''',
         );
@@ -42,5 +43,21 @@ class DatabaseHelper {
       },
       version: 1,
     );
+  }
+
+  Future<void> clearAllTables() async {
+    final db = await database;
+    await db?.execute('DELETE FROM ContactGroups');
+    await db?.execute('DELETE FROM Contact');
+    await db?.execute('DELETE FROM Group');
+  }
+
+  Future<void> close() async {
+    final db = await database;
+    db!.close();
+  }
+
+  Future<String> getDatabasePath() async {
+    return join(await getDatabasesPath(), 'contact_list.db');
   }
 }

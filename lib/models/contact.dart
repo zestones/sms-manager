@@ -13,7 +13,7 @@ class Contact {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'first_name': firstName,
       'last_name': lastName,
       'phone_number': phoneNumber,
