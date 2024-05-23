@@ -40,6 +40,39 @@ class DatabaseHelper {
             );
           ''',
         );
+
+        await db.execute(
+          '''
+            CREATE TABLE Chat (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL UNIQUE
+            );
+          ''',
+        );
+
+        await db.execute(
+          '''
+            CREATE TABLE Message (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              chat_id INTEGER NOT NULL,
+              message TEXT NOT NULL,
+              FOREIGN KEY (chat_id) REFERENCES Chat(id)
+            );
+          ''',
+        );
+
+        await db.execute(
+          '''
+            CREATE TABLE ChatParticipant (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              contact_id INTEGER NOT NULL,
+              chat_id INTEGER NOT NULL,
+              FOREIGN KEY (contact_id) REFERENCES Contact(id),
+              FOREIGN KEY (chat_id) REFERENCES Chat(id),
+              UNIQUE (contact_id, chat_id)
+            );
+          ''',
+        );
       },
       version: 1,
     );
