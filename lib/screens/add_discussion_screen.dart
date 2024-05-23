@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:namer_app/models/contact.dart';
 import 'package:namer_app/models/filter_option.dart';
 import 'package:namer_app/screens/group_selection_screen.dart';
+import 'package:namer_app/service/contact_service.dart';
 import 'package:namer_app/widgets/large_ink_well_button.dart';
 import 'package:namer_app/widgets/tri_state_checkbox.dart';
+import 'package:provider/provider.dart';
 
 class AddDiscussionScreen extends StatefulWidget {
   @override
@@ -15,6 +18,9 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<FilterOption> _filterOptions = [];
   bool isSearchBarFocused = false;
+
+  List<Contact> allContacts = [];
+  List<Contact> filteredContacts = [];
 
   void _createDiscussion(BuildContext context) {
     String discussionName = _discussionNameController.text.trim();
@@ -47,9 +53,43 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+    _searchController.addListener(_filterContacts);
+  }
+
+  void _loadContacts() async {
+    final contactService = Provider.of<ContactService>(context, listen: false);
+    final contacts = await contactService.getAllContact();
+    setState(() {
+      allContacts = contacts;
+      filteredContacts = contacts;
+    });
+  }
+
+  void _filterContacts() {
+    final query = _searchController.text.toLowerCase();
+    print('Filtering contacts with query: $query');
+    setState(() {
+      filteredContacts = allContacts.where((contact) {
+        final fullName =
+            '${contact.firstName} ${contact.lastName}'.toLowerCase();
+        return fullName.contains(query);
+      }).toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    double searchBarTopPosition = isSearchBarFocused ? 0 : 150;
+    final contactService = Provider.of<ContactService>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -75,15 +115,12 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
       ),
       body: Stack(
         children: [
-          AnimatedOpacity(
-            opacity: isSearchBarFocused ? 0.0 : 1.0,
-            duration: Duration(milliseconds: 300),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!isSearchBarFocused) ...[
                 Container(
-                  padding:
-                      EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                  padding: EdgeInsets.only(left: 16.0, right: 16.0),
                   width: double.infinity,
                   child: TextField(
                     controller: _discussionNameController,
@@ -93,63 +130,82 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: 16.0),
+                if (_filterOptions.isNotEmpty) displaySelectedGroups(),
                 LargeInkWellButton(
                   theme: theme,
-                  title: "Select Groups",
+                  title: "Sélectionner des groupes",
                   subtitle:
-                      "Select groups to include or exclude in the discussion",
+                      "Inclure ou exclure des groupes pour cette discussion",
                   callback: () => _navigateToGroupSelection(context),
                 ),
-                SizedBox(height: 10),
-                if (_filterOptions.isNotEmpty) displaySelectedGroups(),
+                SizedBox(height: 6.0),
               ],
-            ),
-          ),
-          AnimatedPositioned(
-            duration: Duration(milliseconds: 300),
-            top: searchBarTopPosition,
-            left: 0,
-            right: 0,
-            child: SearchBar(
-              controller: _searchController,
-              hintText: 'Rechercher des contacts',
-              onChanged: (value) {},
-              onFocusChange: (value) {
-                print('Search bar focused: $value');
-                setState(() {
-                  isSearchBarFocused = value;
-                });
-              },
-            ),
-          ),
-          AnimatedPositioned(
-            duration: Duration(milliseconds: 300),
-            top: searchBarTopPosition + 40,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Suggestions',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.secondary,
-                  fontSize: 12.0,
+              SearchBar(
+                controller: _searchController,
+                hintText: 'Rechercher des contacts',
+                onChanged: (value) => {},
+                onFocusChange: (value) {
+                  print('Search bar focused: $value');
+                  setState(() {
+                    isSearchBarFocused = value;
+                  });
+                },
+              ),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Suggestions',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.secondary,
+                    fontSize: 12.0,
+                  ),
                 ),
               ),
-            ),
+              Expanded(
+                child: FutureBuilder<List<Contact>>(
+                  future: contactService.getAllContact(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else {
+                      final suggestions = snapshot.data!;
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: BouncingScrollPhysics(),
+                        itemCount: suggestions.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(
+                                '${suggestions[index].firstName} ${suggestions[index].lastName}'),
+                            onTap: () {
+                              print('Selected ${suggestions[index].firstName}');
+                            },
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Column displaySelectedGroups() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Center(
-          child: Wrap(
+  SingleChildScrollView displaySelectedGroups() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
             spacing: 10,
             children: _filterOptions.map((option) {
               return GroupChip(
@@ -163,8 +219,8 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
               );
             }).toList(),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
