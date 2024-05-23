@@ -9,6 +9,8 @@ import 'package:namer_app/service/load_csv_contact_list_service.dart';
 import 'package:provider/provider.dart';
 import 'package:namer_app/main.dart';
 
+import '../../widgets/large_ink_well_button.dart';
+
 class DataStorageScreen extends StatelessWidget {
   final Key bodyKey = UniqueKey();
   @override
@@ -83,9 +85,8 @@ class DataStorageScreen extends StatelessWidget {
         key: bodyKey,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ButtonOutline(
+          LargeInkWellButton(
               theme: theme,
-              appState: appState,
               callback: selectStoragePath,
               title: 'Emplacement de stockage',
               subtitle: 'Aucun chemin de stockage sélectionné'),
@@ -130,9 +131,8 @@ class DataStorageScreen extends StatelessWidget {
           ),
 
           // Container with button to manage contacts
-          ButtonOutline(
+          LargeInkWellButton(
             theme: theme,
-            appState: appState,
             title: 'Importer un fichier de contacts',
             subtitle: 'Uniquement au format CSV',
             callback: selectContactFile,
@@ -151,9 +151,8 @@ class DataStorageScreen extends StatelessWidget {
           ),
 
           // Container with button to manage contacts
-          ButtonOutline(
+          LargeInkWellButton(
             theme: theme,
-            appState: appState,
             title: 'Supprimer tous les contacts',
             subtitle: 'Supprime tous les contacts de la base de données',
             callback: () {
@@ -317,58 +316,6 @@ class DoubleButtonOutline extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class ButtonOutline extends StatelessWidget {
-  const ButtonOutline({
-    super.key,
-    required this.theme,
-    required this.appState,
-    required this.title,
-    required this.subtitle,
-    required this.callback,
-  });
-
-  final ThemeData theme;
-  final MyAppState appState;
-  final String title;
-  final String subtitle;
-  final Function callback;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: theme.colorScheme.background,
-      child: InkWell(
-        onTap: () => callback(),
-        child: Container(
-          padding: EdgeInsets.all(16.0),
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: theme.colorScheme.onBackground,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: theme.colorScheme.secondary,
-                  fontSize: 12.0,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
