@@ -90,6 +90,7 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     final contactService = Provider.of<ContactService>(context, listen: false);
+    int? _selectedContactIndex;
 
     return Scaffold(
       appBar: AppBar(
@@ -145,12 +146,8 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                 controller: _searchController,
                 hintText: 'Rechercher des contacts',
                 onChanged: (value) => {},
-                onFocusChange: (value) {
-                  print('Search bar focused: $value');
-                  setState(() {
-                    isSearchBarFocused = value;
-                  });
-                },
+                onFocusChange: (value) =>
+                    setState(() => isSearchBarFocused = value),
               ),
               Container(
                 padding: EdgeInsets.all(16.0),
@@ -164,30 +161,36 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                 ),
               ),
               Expanded(
-                child: FutureBuilder<List<Contact>>(
-                  future: contactService.getAllContact(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else {
-                      final suggestions = snapshot.data!;
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: BouncingScrollPhysics(),
-                        itemCount: suggestions.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(
-                                '${suggestions[index].firstName} ${suggestions[index].lastName}'),
-                            onTap: () {
-                              print('Selected ${suggestions[index].firstName}');
-                            },
-                          );
-                        },
-                      );
-                    }
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: BouncingScrollPhysics(),
+                  itemCount: filteredContacts.length,
+                  itemBuilder: (context, index) {
+                    final contact = filteredContacts[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        child: Text(
+                          contact.firstName[0],
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      title: Row(
+                        children: [
+                          Text('${contact.firstName} ${contact.lastName}'),
+                          Spacer(),
+                          Radio(
+                            value: index,
+                            groupValue: _selectedContactIndex,
+                            onChanged: (int? value) =>
+                                _selectedContactIndex = value,
+                          ),
+                        ],
+                      ),
+                      onTap: () {
+                        print('Selected ${contact.firstName}');
+                      },
+                    );
                   },
                 ),
               ),
