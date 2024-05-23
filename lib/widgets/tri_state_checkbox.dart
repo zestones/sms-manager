@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-enum TriStateCheckboxState { unchecked, checked, excluded }
+enum TriCheckboxEnum { unchecked, checked, excluded }
 
 class TriStateCheckbox extends StatefulWidget {
-  final TriStateCheckboxState? value;
-  final ValueChanged<TriStateCheckboxState?>? onChanged;
+  final TriCheckboxEnum? value;
+  final ValueChanged<TriCheckboxEnum?>? onChanged;
   final String title;
 
   const TriStateCheckbox({
@@ -15,11 +15,11 @@ class TriStateCheckbox extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TriStateCheckboxState createState() => _TriStateCheckboxState();
+  TriStateCheckboxState createState() => TriStateCheckboxState();
 }
 
-class _TriStateCheckboxState extends State<TriStateCheckbox> {
-  TriStateCheckboxState? _state;
+class TriStateCheckboxState extends State<TriStateCheckbox> {
+  TriCheckboxEnum? _state;
 
   @override
   void initState() {
@@ -30,12 +30,13 @@ class _TriStateCheckboxState extends State<TriStateCheckbox> {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
+
     Widget checkboxIcon =
         Icon(Icons.check_box_outline_blank, color: theme.primaryColor);
 
-    if (_state == TriStateCheckboxState.checked) {
+    if (_state == TriCheckboxEnum.checked) {
       checkboxIcon = Icon(Icons.check_box, color: theme.primaryColor);
-    } else if (_state == TriStateCheckboxState.excluded) {
+    } else if (_state == TriCheckboxEnum.excluded) {
       checkboxIcon =
           Icon(Icons.indeterminate_check_box, color: theme.primaryColor);
     }
@@ -55,19 +56,19 @@ class _TriStateCheckboxState extends State<TriStateCheckbox> {
   }
 
   void eventHandler() {
-    TriStateCheckboxState? newState;
+    TriCheckboxEnum? newState;
     switch (_state) {
-      case TriStateCheckboxState.checked:
-        newState = TriStateCheckboxState.unchecked;
+      case TriCheckboxEnum.checked:
+        newState = TriCheckboxEnum.excluded;
         break;
-      case TriStateCheckboxState.unchecked:
-        newState = TriStateCheckboxState.excluded;
+      case TriCheckboxEnum.excluded:
+        newState = TriCheckboxEnum.unchecked;
         break;
-      case TriStateCheckboxState.excluded:
-        newState = TriStateCheckboxState.checked;
+      case TriCheckboxEnum.unchecked:
+        newState = TriCheckboxEnum.checked;
         break;
       case null:
-        newState = TriStateCheckboxState.unchecked;
+        newState = TriCheckboxEnum.unchecked;
         break;
     }
     setState(() {

@@ -254,10 +254,6 @@ class ContactsScreenState extends State<ContactsScreen> {
     final contactListService =
         Provider.of<ContactListService>(context, listen: false);
 
-    for (var option in _filterOptions) {
-      print('${option.groupName}: ${option.state}');
-    }
-
     List<Contact> filteredContacts =
         await contactListService.getContactListByGroups(_filterOptions);
 

@@ -340,7 +340,7 @@ class ButtonOutline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: theme.colorScheme.surface,
+      color: theme.colorScheme.background,
       child: InkWell(
         onTap: () => callback(),
         child: Container(

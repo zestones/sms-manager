@@ -32,9 +32,9 @@ class ContactListRepository {
     List<String> excludedGroupNames = [];
 
     for (var option in filterOptions) {
-      if (option.state == TriStateCheckboxState.checked) {
+      if (option.state == TriCheckboxEnum.checked) {
         checkedGroupNames.add(option.groupName);
-      } else if (option.state == TriStateCheckboxState.excluded) {
+      } else if (option.state == TriCheckboxEnum.excluded) {
         excludedGroupNames.add(option.groupName);
       }
     }

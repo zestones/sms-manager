@@ -132,7 +132,6 @@ class MyHomePage extends StatelessWidget {
         break;
       case 1:
         page = ContactsScreen();
-        // page = ContactsScreen();
         break;
       case 2:
         page = SettingsScreen();
