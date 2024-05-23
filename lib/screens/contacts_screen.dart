@@ -32,10 +32,14 @@ class ContactsScreenState extends State<ContactsScreen> {
   @override
   Widget build(BuildContext context) {
     final contactService = Provider.of<ContactService>(context, listen: false);
+    var theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Contacts'),
+        title: Text('Contacts',
+            style: TextStyle(
+                color: theme.colorScheme.onBackground,
+                fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: Icon(Icons.search),

@@ -13,7 +13,7 @@ import 'package:namer_app/service/local_notification_service.dart';
 
 // Screens
 // import 'screens/contacts_screen.dart';
-import 'screens/settings_screen.dart';
+import 'screens/settings/main_settings_screen.dart';
 import 'screens/home_screen.dart';
 
 import 'package:namer_app/repositories/contact_list_repository.dart';
@@ -182,7 +182,7 @@ class MyAppState extends ChangeNotifier {
     }
   }
 
-  void setIndex(int index) {
+  void updateActivePageIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
   }
@@ -230,9 +230,9 @@ class MyHomePage extends StatelessWidget {
         children: [
           // Header(primaryColor: Theme.of(context).primaryColor),
           Expanded(child: Container(child: page)),
-          Navigation(),
         ],
       ),
+      bottomNavigationBar: Navigation(),
     );
   }
 }
