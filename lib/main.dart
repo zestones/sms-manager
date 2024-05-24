@@ -123,7 +123,7 @@ class MyAppState extends ChangeNotifier {
 class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>(); // Watch MyAppState
+    var appState = context.watch<MyAppState>();
 
     Widget page;
     switch (appState.selectedIndex) {

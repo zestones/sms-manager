@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:namer_app/models/contact.dart';
 import 'package:namer_app/models/filter_option.dart';
 import 'package:namer_app/screens/group_selection_screen.dart';
@@ -16,11 +17,14 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
   final TextEditingController _discussionNameController =
       TextEditingController();
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   List<FilterOption> _filterOptions = [];
   bool isSearchBarFocused = false;
 
   List<Contact> allContacts = [];
   List<Contact> filteredContacts = [];
+  List<Contact> selectedContacts = [];
 
   void _createDiscussion(BuildContext context) {
     String discussionName = _discussionNameController.text.trim();
@@ -63,6 +67,7 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
     final contactService = Provider.of<ContactService>(context, listen: false);
     final contacts = await contactService.getAllContact();
     setState(() {
+      contacts.sort((a, b) => a.firstName.compareTo(b.firstName));
       allContacts = contacts;
       filteredContacts = contacts;
     });
@@ -86,11 +91,19 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
     super.dispose();
   }
 
+  void _scrollToRightmost() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    final contactService = Provider.of<ContactService>(context, listen: false);
-    int? _selectedContactIndex;
 
     return Scaffold(
       appBar: AppBar(
@@ -149,6 +162,10 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                 onFocusChange: (value) =>
                     setState(() => isSearchBarFocused = value),
               ),
+              SelectedContactsView(
+                selectedContacts: selectedContacts,
+                scrollController: _scrollController,
+              ),
               Container(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
@@ -160,39 +177,29 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                   ),
                 ),
               ),
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: BouncingScrollPhysics(),
-                  itemCount: filteredContacts.length,
-                  itemBuilder: (context, index) {
-                    final contact = filteredContacts[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        child: Text(
-                          contact.firstName[0],
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      title: Row(
-                        children: [
-                          Text('${contact.firstName} ${contact.lastName}'),
-                          Spacer(),
-                          Radio(
-                            value: index,
-                            groupValue: _selectedContactIndex,
-                            onChanged: (int? value) =>
-                                _selectedContactIndex = value,
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        print('Selected ${contact.firstName}');
-                      },
-                    );
-                  },
-                ),
+              ContactsListView(
+                filteredContacts: filteredContacts,
+                selectedContacts: selectedContacts,
+                onContactTap: (contact) {
+                  setState(() {
+                    if (selectedContacts.contains(contact)) {
+                      selectedContacts.remove(contact);
+                    } else {
+                      selectedContacts.add(contact);
+                      _scrollToRightmost();
+                    }
+                  });
+                },
+                onCheckboxChanged: (contact, isSelected) {
+                  setState(() {
+                    if (isSelected) {
+                      selectedContacts.add(contact);
+                      _scrollToRightmost();
+                    } else {
+                      selectedContacts.remove(contact);
+                    }
+                  });
+                },
               ),
             ],
           ),
@@ -223,6 +230,118 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
             }).toList(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class SelectedContactsView extends StatelessWidget {
+  final List<Contact> selectedContacts;
+  final ScrollController scrollController;
+
+  SelectedContactsView({
+    required this.selectedContacts,
+    required this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    return selectedContacts.isNotEmpty
+        ? Column(
+            children: [
+              SizedBox(height: 16.0),
+              SizedBox(
+                height: 80.0,
+                child: ListView.builder(
+                  controller: scrollController,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: selectedContacts.length,
+                  itemBuilder: (context, index) {
+                    final contact = selectedContacts[index];
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: CircleAvatar(
+                            backgroundColor: theme.colorScheme.primary,
+                            child: Text(
+                              contact.firstName[0],
+                              style:
+                                  TextStyle(color: theme.colorScheme.onPrimary),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          contact.firstName,
+                          style: TextStyle(
+                            fontSize: 12.0,
+                            color: theme.colorScheme.onBackground,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          )
+        : SizedBox.shrink();
+  }
+}
+
+class ContactsListView extends StatelessWidget {
+  final List<Contact> filteredContacts;
+  final List<Contact> selectedContacts;
+  final Function(Contact) onContactTap;
+  final Function(Contact, bool) onCheckboxChanged;
+
+  ContactsListView({
+    required this.filteredContacts,
+    required this.selectedContacts,
+    required this.onContactTap,
+    required this.onCheckboxChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+
+    return Expanded(
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: BouncingScrollPhysics(),
+        itemCount: filteredContacts.length,
+        itemBuilder: (context, index) {
+          final contact = filteredContacts[index];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blue,
+              child: Text(
+                contact.firstName[0],
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            title: Row(
+              children: [
+                Text('${contact.firstName} ${contact.lastName}'),
+                Spacer(),
+                Checkbox(
+                  value: selectedContacts.contains(contact),
+                  onChanged: (bool? value) =>
+                      onCheckboxChanged(contact, value!),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  checkColor: theme.colorScheme.primary,
+                  activeColor: theme.colorScheme.primary,
+                ),
+              ],
+            ),
+            onTap: () => onContactTap(contact),
+          );
+        },
       ),
     );
   }
