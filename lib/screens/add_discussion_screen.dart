@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:namer_app/models/contact.dart';
 import 'package:namer_app/models/filter_option.dart';
 import 'package:namer_app/screens/group_selection_screen.dart';
@@ -146,12 +145,26 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                 ),
                 SizedBox(height: 16.0),
                 if (_filterOptions.isNotEmpty) displaySelectedGroups(),
-                LargeInkWellButton(
-                  theme: theme,
-                  title: "Sélectionner des groupes",
-                  subtitle:
-                      "Inclure ou exclure des groupes pour cette discussion",
-                  callback: () => _navigateToGroupSelection(context),
+                ListTile(
+                  title: Text(
+                    "Sélectionner des groupes",
+                    style: TextStyle(
+                      color: theme.colorScheme.onBackground,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "Inclure ou exclure des groupes pour cette discussion",
+                    style: TextStyle(
+                      color: theme.colorScheme.secondary,
+                      fontSize: 12.0,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  trailing: Icon(Icons.arrow_forward,
+                      color: theme.colorScheme.onBackground),
+                  onTap: () => _navigateToGroupSelection(context),
                 ),
                 SizedBox(height: 6.0),
               ],

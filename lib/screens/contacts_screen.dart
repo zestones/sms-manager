@@ -222,7 +222,10 @@ class ContactsScreenState extends State<ContactsScreen> {
                     // Initialize filter options if not initialized yet
                     if (_filterOptions.isEmpty) {
                       _filterOptions = List.generate(groups.length, (index) {
-                        return FilterOption(groups[index].name);
+                        return FilterOption(
+                          groups[index].name,
+                          groups[index].id,
+                        );
                       });
                     }
 

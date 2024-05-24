@@ -1,5 +1,3 @@
-// GroupSelectionScreen.dart
-
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/filter_option.dart';
 import 'package:namer_app/models/group.dart';
@@ -42,7 +40,7 @@ class GroupSelectionScreenState extends State<GroupSelectionScreen> {
               final groups = snapshot.data!;
               if (_filterOptions.isEmpty) {
                 _filterOptions = List.generate(groups.length, (index) {
-                  return FilterOption(groups[index].name);
+                  return FilterOption(groups[index].name, groups[index].id);
                 });
               }
 
