@@ -3,6 +3,7 @@ import 'package:namer_app/models/contact.dart';
 import 'package:namer_app/models/filter_option.dart';
 import 'package:namer_app/screens/group_selection_screen.dart';
 import 'package:namer_app/service/contact_service.dart';
+import 'package:namer_app/service/discussion_service.dart';
 import 'package:namer_app/widgets/large_ink_well_button.dart';
 import 'package:namer_app/widgets/tri_state_checkbox.dart';
 import 'package:provider/provider.dart';
@@ -27,14 +28,23 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
 
   void _createDiscussion(BuildContext context) {
     String discussionName = _discussionNameController.text.trim();
-    if (discussionName.isNotEmpty && _filterOptions.isNotEmpty) {
-      // TODO: Using discussion service to insert in the database
-      Navigator.pop(
-          context, {'name': discussionName, 'groups': _filterOptions});
+    if (discussionName.isNotEmpty &&
+        (_filterOptions.isNotEmpty || selectedContacts.isNotEmpty)) {
+      final discussionService =
+          Provider.of<DiscussionService>(context, listen: false);
+
+      discussionService.createDiscussion(
+        discussionName,
+        _filterOptions,
+        selectedContacts.map((contact) => contact.id).toList(),
+      );
+
+      Navigator.pop(context, discussionName);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Le nom de la discussion et les groupes sont requis'),
+          content:
+              Text('Entrez un nom de discussion et sélectionnez des contacts'),
           duration: Duration(seconds: 2),
           backgroundColor: Colors.red,
         ),

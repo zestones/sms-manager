@@ -1,8 +1,11 @@
 import 'package:namer_app/repositories/contact_list_repository.dart';
 import 'package:namer_app/repositories/contact_repository.dart';
+import 'package:namer_app/repositories/discussion_participant_repository.dart';
+import 'package:namer_app/repositories/discussion_repository.dart';
 import 'package:namer_app/repositories/group_repository.dart';
 import 'package:namer_app/service/contact_list_service.dart';
 import 'package:namer_app/service/contact_service.dart';
+import 'package:namer_app/service/discussion_service.dart';
 import 'package:namer_app/service/group_service.dart';
 import 'package:namer_app/service/load_csv_contact_list_service.dart';
 import 'package:namer_app/utils/database_helper.dart';
@@ -29,6 +32,10 @@ class ServiceInjection {
       Provider<ContactRepository>(
           create: (_) => ContactRepository(databaseHelper)),
       Provider<GroupRepository>(create: (_) => GroupRepository(databaseHelper)),
+      Provider<DiscussionRepository>(
+          create: (_) => DiscussionRepository(databaseHelper)),
+      Provider<DiscussionParticipantRepository>(
+          create: (_) => DiscussionParticipantRepository(databaseHelper)),
     ];
   }
 
@@ -58,6 +65,16 @@ class ServiceInjection {
           contactListRepository,
           contactRepository,
           groupRepository,
+        ),
+      ),
+      ProxyProvider3<DiscussionRepository, ContactListRepository,
+          DiscussionParticipantRepository, DiscussionService>(
+        update: (context, discussionRepository, contactListRepository,
+                discussionParticipantRepository, _) =>
+            DiscussionService(
+          discussionRepository,
+          contactListRepository,
+          discussionParticipantRepository,
         ),
       ),
     ];

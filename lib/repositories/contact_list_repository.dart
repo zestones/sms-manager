@@ -19,12 +19,12 @@ class ContactListRepository {
     final db = await _databaseHelper.database;
 
     String query = '''
-    SELECT DISTINCT c.* 
-    FROM Contact c
-    JOIN ContactGroups cg ON c.id = cg.contact_id
-    JOIN Groups g ON cg.group_id = g.id
-    WHERE 1=1
-  ''';
+      SELECT DISTINCT c.* 
+      FROM Contact c
+      JOIN ContactGroups cg ON c.id = cg.contact_id
+      JOIN Groups g ON cg.group_id = g.id
+      WHERE 1=1
+    ''';
 
     List<dynamic> arguments = [];
 
@@ -56,8 +56,6 @@ class ContactListRepository {
       query += ' )';
       arguments.addAll(excludedGroupNames);
     }
-
-    print('Query: $query');
 
     List<Map<String, dynamic>> result = await db!.rawQuery(query, arguments);
 
