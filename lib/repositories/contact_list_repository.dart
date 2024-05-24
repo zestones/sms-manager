@@ -33,9 +33,9 @@ class ContactListRepository {
 
     for (var option in filterOptions) {
       if (option.state == TriCheckboxEnum.checked) {
-        checkedGroupNames.add(option.groupName);
+        checkedGroupNames.add(option.name);
       } else if (option.state == TriCheckboxEnum.excluded) {
-        excludedGroupNames.add(option.groupName);
+        excludedGroupNames.add(option.name);
       }
     }
 

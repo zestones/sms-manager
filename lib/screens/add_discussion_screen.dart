@@ -45,7 +45,9 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
   void _navigateToGroupSelection(BuildContext context) async {
     final selectedGroups = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => GroupSelectionScreen()),
+      MaterialPageRoute(
+          builder: (context) =>
+              GroupSelectionScreen(filterOptions: _filterOptions)),
     );
 
     if (selectedGroups != null) {
@@ -145,27 +147,12 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                 ),
                 SizedBox(height: 16.0),
                 if (_filterOptions.isNotEmpty) displaySelectedGroups(),
-                ListTile(
-                  title: Text(
-                    "Sélectionner des groupes",
-                    style: TextStyle(
-                      color: theme.colorScheme.onBackground,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "Inclure ou exclure des groupes pour cette discussion",
-                    style: TextStyle(
-                      color: theme.colorScheme.secondary,
-                      fontSize: 12.0,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  trailing: Icon(Icons.arrow_forward,
-                      color: theme.colorScheme.onBackground),
-                  onTap: () => _navigateToGroupSelection(context),
-                ),
+                LargeInkWellButton(
+                    theme: theme,
+                    title: 'Ajouter des groupes',
+                    subtitle: 'Sélectionner des groupes pour la discussion',
+                    icon: Icon(Icons.arrow_forward_sharp),
+                    callback: () => _navigateToGroupSelection(context)),
                 SizedBox(height: 6.0),
               ],
               SearchBar(
@@ -234,7 +221,7 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
               return GroupChip(
                 option: option,
                 onDelete: (option) {
-                  print('Removed ${option.groupName}');
+                  print('Removed ${option.name}');
                   setState(() {
                     _filterOptions.remove(option);
                   });
@@ -425,7 +412,7 @@ class GroupChip extends StatelessWidget {
             ? Colors.orange
             : Colors.red;
     return InputChip(
-      label: Text(option.groupName, style: TextStyle(color: color)),
+      label: Text(option.name, style: TextStyle(color: color)),
       onDeleted: () => onDelete(option),
       deleteIconColor: color,
       backgroundColor: Colors.transparent,
