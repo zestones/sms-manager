@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/discussion.dart';
 import 'package:namer_app/screens/add_discussion_screen.dart';
+import 'package:namer_app/screens/discussion_screen.dart';
 import 'package:namer_app/service/discussion_service.dart';
 import 'package:provider/provider.dart';
 
@@ -113,7 +114,12 @@ class DiscussionTile extends StatelessWidget {
           trailing: Icon(Icons.arrow_forward_ios,
               color: theme.colorScheme.onBackground),
           onTap: () {
-            // Navigate to the discussion detail page or perform any action
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DiscussionScreen(discussion: discussion),
+              ),
+            );
           },
           tileColor: theme.colorScheme.tertiary,
           shape: RoundedRectangleBorder(
