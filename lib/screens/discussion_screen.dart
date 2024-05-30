@@ -69,36 +69,40 @@ class DiscussionScreenState extends State<DiscussionScreen> {
               },
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 20.0),
-                      hintText: 'Écrivez un message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: theme.colorScheme.tertiary,
-                    ),
-                  ),
+          buildMessageInputField(theme),
+        ],
+      ),
+    );
+  }
+
+  Container buildMessageInputField(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: 10.0, horizontal: 20.0),
+                hintText: 'Écrivez un message...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
                 ),
-                const SizedBox(width: 8.0),
-                CircleAvatar(
-                  radius: 25.0,
-                  backgroundColor: theme.colorScheme.primary,
-                  child: IconButton(
-                    icon: Icon(Icons.send, color: theme.colorScheme.onPrimary),
-                    onPressed: _sendMessage,
-                  ),
-                ),
-              ],
+                filled: true,
+                fillColor: theme.colorScheme.tertiary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          CircleAvatar(
+            radius: 25.0,
+            backgroundColor: theme.colorScheme.primary,
+            child: IconButton(
+              icon: Icon(Icons.send, color: theme.colorScheme.onPrimary),
+              onPressed: _sendMessage,
             ),
           ),
         ],
