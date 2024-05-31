@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/discussion.dart';
+import 'package:namer_app/models/message.dart';
 
 class DiscussionScreen extends StatefulWidget {
   const DiscussionScreen({
@@ -15,12 +16,16 @@ class DiscussionScreen extends StatefulWidget {
 
 class DiscussionScreenState extends State<DiscussionScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<String> _messages = [];
+  final List<Message> _messages = [];
 
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
       setState(() {
-        _messages.add(_controller.text);
+        _messages.add(Message(
+          discussionId: widget.discussion.id!,
+          text: _controller.text,
+        ));
+
         _controller.clear();
       });
     }
@@ -44,28 +49,7 @@ class DiscussionScreenState extends State<DiscussionScreen> {
               padding: const EdgeInsets.all(8.0),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                return Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.8),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12.0),
-                        topRight: Radius.circular(12.0),
-                        bottomLeft: Radius.circular(12.0),
-                        bottomRight: Radius.circular(0.0),
-                      ),
-                    ),
-                    child: Text(
-                      _messages[index],
-                      style: TextStyle(
-                        color: theme.colorScheme.onPrimary,
-                      ),
-                    ),
-                  ),
-                );
+                return MessageBubble(message: _messages[index]);
               },
             ),
           ),
@@ -107,6 +91,56 @@ class DiscussionScreenState extends State<DiscussionScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  const MessageBubble({
+    super.key,
+    required this.message,
+  });
+
+  final Message message;
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.8),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12.0),
+                topRight: Radius.circular(12.0),
+                bottomLeft: Radius.circular(12.0),
+                bottomRight: Radius.circular(0.0),
+              ),
+            ),
+            child: Text(
+              message.text,
+              style: TextStyle(
+                color: theme.colorScheme.onPrimary,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4.0),
+        Text(
+          message.formatTimestamp(),
+          style: TextStyle(
+            color: theme.colorScheme.onBackground,
+            fontSize: 12.0,
+          ),
+        ),
+      ],
     );
   }
 }

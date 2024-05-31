@@ -55,7 +55,8 @@ class DatabaseHelper {
             CREATE TABLE Message (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               discussion_id INTEGER NOT NULL,
-              message TEXT NOT NULL,
+              text TEXT NOT NULL,
+              timestamp TEXT NOT NULL,
               FOREIGN KEY (discussion_id) REFERENCES Chat(id)
             );
           ''',
