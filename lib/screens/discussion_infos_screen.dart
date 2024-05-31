@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/contact.dart';
 import 'package:namer_app/models/discussion.dart';
+import 'package:namer_app/screens/add_discussion_screen.dart';
 import 'package:namer_app/service/discussion_participant_service.dart';
 import 'package:namer_app/widgets/contact_tile.dart';
 import 'package:provider/provider.dart';
@@ -53,6 +54,9 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
     setState(() {
       if (selectedContacts.contains(contact)) {
         selectedContacts.remove(contact);
+        if (selectedContacts.isEmpty) {
+          isEditMode = false;
+        }
       } else {
         selectedContacts.add(contact);
       }
@@ -60,19 +64,19 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
   }
 
   void _removeSelectedContacts() {
+    final discussionParticipantService =
+        Provider.of<DiscussionParticipantService>(context, listen: false);
+
+    final contactIds = selectedContacts
+        .map((c) => c.id)
+        .where((id) => id != null)
+        .cast<int>()
+        .toList();
+
+    discussionParticipantService.removeParticipantsFromDiscussion(
+        widget.discussion.id!, contactIds);
+
     setState(() {
-      final discussionParticipantService =
-          Provider.of<DiscussionParticipantService>(context, listen: false);
-
-      final contactIds = selectedContacts
-          .map((c) => c.id)
-          .where((id) => id != null)
-          .cast<int>()
-          .toList();
-
-      discussionParticipantService.removeParticipantsFromDiscussion(
-          widget.discussion.id!, contactIds);
-
       participants.removeWhere((contact) => selectedContacts.contains(contact));
       selectedContacts.clear();
       isEditMode = false;
@@ -85,23 +89,53 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.discussion.name),
+        title: Text('Membres'),
         actions: [
           if (isEditMode)
             IconButton(
               icon: Icon(Icons.delete),
               onPressed: _removeSelectedContacts,
+            )
+          else
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    // TODO: use the AddDiscussionScreen component to select contacts
+                    builder: (context) => AddDiscussionScreen(),
+                  ),
+                ).then((_) => _loadParticipants());
+              },
+              child: Text(
+                'AJOUTER',
+                style: TextStyle(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
             ),
-          IconButton(
-            icon: Icon(isEditMode ? Icons.close : Icons.edit),
-            onPressed: _toggleEditMode,
-          ),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Container(
+              padding: EdgeInsets.all(16.0),
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Liste des membres',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             ListView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
@@ -110,24 +144,22 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
                 final contact = participants[index];
                 final isSelected = selectedContacts.contains(contact);
 
-                return GestureDetector(
-                  onLongPress: () {
-                    if (!isEditMode) {
-                      _toggleEditMode();
-                    }
-                    _toggleSelection(contact);
-                  },
-                  onTap: isEditMode ? () => _toggleSelection(contact) : null,
-                  child: Container(
-                    color: isSelected
-                        ? theme.colorScheme.primary.withOpacity(0.2)
-                        : null,
-                    child: Column(
-                      children: [
-                        SizedBox(height: 8),
-                        ContactTile(contact: contact),
-                      ],
-                    ),
+                return Container(
+                  color: isSelected
+                      ? theme.colorScheme.primary.withOpacity(0.2)
+                      : null,
+                  child: Column(
+                    children: [
+                      ContactTile(
+                        contact: contact,
+                        onLongPress: () {
+                          if (!isEditMode) _toggleEditMode();
+                          _toggleSelection(contact);
+                        },
+                        onTap:
+                            isEditMode ? () => _toggleSelection(contact) : null,
+                      ),
+                    ],
                   ),
                 );
               },
