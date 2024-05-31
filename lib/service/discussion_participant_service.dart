@@ -14,6 +14,12 @@ class DiscussionParticipantService {
         .getDiscussionParticipantIdsByDiscussionId(discussionId);
   }
 
+  void removeParticipantsFromDiscussion(discussionId, contactIds) {
+    if (contactIds.isEmpty) return;
+    _discussionParticipantRepository.removeParticipantsFromDiscussion(
+        discussionId, contactIds!);
+  }
+
   Future<List<Contact>> getContactsByDiscussionId(discussionId) async {
     List<int> contactIds = await getParticipantIdsByDiscussionId(discussionId);
 

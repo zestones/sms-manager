@@ -16,6 +16,8 @@ class DiscussionInfosScreen extends StatefulWidget {
 
 class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
   List<Contact> participants = [];
+  bool isEditMode = false;
+  Set<Contact> selectedContacts = {};
 
   @override
   void initState() {
@@ -40,11 +42,59 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
     );
   }
 
+  void _toggleEditMode() {
+    setState(() {
+      isEditMode = !isEditMode;
+      selectedContacts.clear();
+    });
+  }
+
+  void _toggleSelection(Contact contact) {
+    setState(() {
+      if (selectedContacts.contains(contact)) {
+        selectedContacts.remove(contact);
+      } else {
+        selectedContacts.add(contact);
+      }
+    });
+  }
+
+  void _removeSelectedContacts() {
+    setState(() {
+      final discussionParticipantService =
+          Provider.of<DiscussionParticipantService>(context, listen: false);
+
+      final contactIds = selectedContacts
+          .map((c) => c.id)
+          .where((id) => id != null)
+          .cast<int>()
+          .toList();
+
+      discussionParticipantService.removeParticipantsFromDiscussion(
+          widget.discussion.id!, contactIds);
+
+      participants.removeWhere((contact) => selectedContacts.contains(contact));
+      selectedContacts.clear();
+      isEditMode = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.discussion.name),
+        actions: [
+          if (isEditMode)
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: _removeSelectedContacts,
+            ),
+          IconButton(
+            icon: Icon(isEditMode ? Icons.close : Icons.edit),
+            onPressed: _toggleEditMode,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -55,11 +105,26 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
               physics: NeverScrollableScrollPhysics(),
               itemCount: participants.length,
               itemBuilder: (context, index) {
-                return Column(
-                  children: [
-                    SizedBox(height: 8),
-                    ContactTile(contact: participants[index]),
-                  ],
+                final contact = participants[index];
+                final isSelected = selectedContacts.contains(contact);
+
+                return GestureDetector(
+                  onLongPress: () {
+                    if (!isEditMode) {
+                      _toggleEditMode();
+                    }
+                    _toggleSelection(contact);
+                  },
+                  onTap: isEditMode ? () => _toggleSelection(contact) : null,
+                  child: Container(
+                    color: isSelected ? Colors.blue.withOpacity(0.5) : null,
+                    child: Column(
+                      children: [
+                        SizedBox(height: 8),
+                        ContactTile(contact: contact),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
