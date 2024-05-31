@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/discussion.dart';
 import 'package:namer_app/models/message.dart';
+import 'package:namer_app/screens/discussion_infos_screen.dart';
 import 'package:namer_app/service/discussion_participant_service.dart';
 import 'package:namer_app/service/message_service.dart';
 import 'package:namer_app/utils/sms_helper.dart';
@@ -79,13 +80,25 @@ class DiscussionScreenState extends State<DiscussionScreen> {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
           widget.discussion.name,
           style: TextStyle(color: theme.colorScheme.onBackground),
         ),
+        actions: [
+          IconButton(
+            icon:
+                Icon(Icons.info_outline, color: theme.colorScheme.onBackground),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    DiscussionInfosScreen(discussion: widget.discussion),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
