@@ -24,6 +24,19 @@ class DiscussionParticipantRepository {
     await batch.commit(noResult: true);
   }
 
+  Future<List<int>> getDiscussionParticipantIdsByDiscussionId(
+      discussionId) async {
+    final db = await _databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      'DiscussionParticipant',
+      where: 'discussion_id = ?',
+      whereArgs: [discussionId],
+    );
+    return List.generate(maps.length, (i) {
+      return maps[i]['contact_id'];
+    });
+  }
+
   Future<void> deleteAllDiscussionParticipants() async {
     final db = await _databaseHelper.database;
     await db!.delete('DiscussionParticipant');

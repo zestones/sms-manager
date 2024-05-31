@@ -6,6 +6,7 @@ import 'package:namer_app/repositories/group_repository.dart';
 import 'package:namer_app/repositories/message_repository.dart';
 import 'package:namer_app/service/contact_list_service.dart';
 import 'package:namer_app/service/contact_service.dart';
+import 'package:namer_app/service/discussion_participant_service.dart';
 import 'package:namer_app/service/discussion_service.dart';
 import 'package:namer_app/service/group_service.dart';
 import 'package:namer_app/service/load_csv_contact_list_service.dart';
@@ -59,6 +60,15 @@ class ServiceInjection {
       ),
       ProxyProvider<GroupRepository, GroupService>(
         update: (context, groupRepository, _) => GroupService(groupRepository),
+      ),
+      ProxyProvider2<DiscussionParticipantRepository, ContactRepository,
+          DiscussionParticipantService>(
+        update:
+            (context, discussionParticipantRepository, contactRepository, _) =>
+                DiscussionParticipantService(
+          discussionParticipantRepository,
+          contactRepository,
+        ),
       ),
       ProxyProvider3<ContactListRepository, ContactRepository, GroupRepository,
           LoadCSVContactListService>(

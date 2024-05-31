@@ -6,6 +6,21 @@ class ContactRepository {
 
   ContactRepository(this._databaseHelper);
 
+  Future<Contact> getContactById(int id) async {
+    final db = await _databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      'Contact',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return Contact(
+      id: maps[0]['id'],
+      firstName: maps[0]['first_name'],
+      lastName: maps[0]['last_name'],
+      phoneNumber: maps[0]['phone_number'],
+    );
+  }
+
   Future<int> insertContact(Contact contact) async {
     final db = await _databaseHelper.database;
     return await db!.insert('Contact', contact.toMap());

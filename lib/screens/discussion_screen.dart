@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/discussion.dart';
 import 'package:namer_app/models/message.dart';
+import 'package:namer_app/service/discussion_participant_service.dart';
 import 'package:namer_app/service/message_service.dart';
+import 'package:namer_app/utils/sms_helper.dart';
 import 'package:provider/provider.dart';
 
 class DiscussionScreen extends StatefulWidget {
@@ -43,13 +45,22 @@ class DiscussionScreenState extends State<DiscussionScreen> {
     if (_controller.text.isNotEmpty) {
       final messageService =
           Provider.of<MessageService>(context, listen: false);
+
+      final discussionParticipantService =
+          Provider.of<DiscussionParticipantService>(context, listen: false);
+
       setState(() {
         Message message = Message(
           discussionId: widget.discussion.id!,
           text: _controller.text,
         );
 
-        // TODO: Send SMS to all participants
+        // Get the list of recipients
+        discussionParticipantService
+            .getContactsByDiscussionId(widget.discussion.id!)
+            .then((recipients) => SmsHelper.sendSms(
+                message.text, recipients.map((c) => c.phoneNumber).toList()));
+
         messageService.insertMessage(message);
         _messages.add(message);
 
