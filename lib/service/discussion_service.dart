@@ -28,13 +28,14 @@ class DiscussionService {
 
     var union = contactListIds.union(contactIds).toSet().toList();
     List<DiscussionParticipant> discussionParticipants = union
-        .map((id) =>
-            DiscussionParticipant(discussionId: discussionId, contactId: id!))
+        .map((id) => DiscussionParticipant(
+              discussionId: discussionId,
+              contactId: id!,
+            ))
         .toList();
 
     await _discussionParticipantRepository
         .insertDiscussionParticipants(discussionParticipants);
-
     return discussionId;
   }
 
