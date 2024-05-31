@@ -81,6 +81,8 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.discussion.name),
@@ -117,7 +119,9 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
                   },
                   onTap: isEditMode ? () => _toggleSelection(contact) : null,
                   child: Container(
-                    color: isSelected ? Colors.blue.withOpacity(0.5) : null,
+                    color: isSelected
+                        ? theme.colorScheme.primary.withOpacity(0.2)
+                        : null,
                     child: Column(
                       children: [
                         SizedBox(height: 8),
