@@ -40,13 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final discussionName = await Navigator.push(
+          final obj = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddDiscussionScreen()),
           );
 
-          if (discussionName != null) {
-            setState(() => discussions.add(Discussion(name: discussionName)));
+          if (obj['name'] != null && obj['id'] != null) {
+            setState(() =>
+                discussions.add(Discussion(id: obj['id'], name: obj['name'])));
           }
         },
         backgroundColor: theme.colorScheme.primary,

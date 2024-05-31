@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/discussion.dart';
 import 'package:namer_app/models/message.dart';
+import 'package:namer_app/service/message_service.dart';
+import 'package:provider/provider.dart';
 
 class DiscussionScreen extends StatefulWidget {
   const DiscussionScreen({
@@ -18,13 +20,39 @@ class DiscussionScreenState extends State<DiscussionScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Message> _messages = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages();
+  }
+
+  void _loadMessages() {
+    final messageService = Provider.of<MessageService>(context, listen: false);
+    messageService.getAllMessagesByDiscussionId(widget.discussion.id!).then(
+      (messages) {
+        setState(() {
+          _messages.clear();
+          _messages.addAll(messages);
+        });
+      },
+    );
+  }
+
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
+      final messageService =
+          Provider.of<MessageService>(context, listen: false);
       setState(() {
-        _messages.add(Message(
+        Message message = Message(
           discussionId: widget.discussion.id!,
           text: _controller.text,
-        ));
+        );
+
+        // TODO: Send SMS to all participants
+        // TODO: Save message to database
+        messageService.insertMessage(message);
+
+        _messages.add(message);
 
         _controller.clear();
       });

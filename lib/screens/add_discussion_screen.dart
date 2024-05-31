@@ -33,13 +33,17 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
       final discussionService =
           Provider.of<DiscussionService>(context, listen: false);
 
-      discussionService.createDiscussion(
+      discussionService
+          .createDiscussion(
         discussionName,
         _filterOptions,
         selectedContacts.map((contact) => contact.id).toList(),
-      );
-
-      Navigator.pop(context, discussionName);
+      )
+          .then((id) {
+        if (mounted) {
+          Navigator.pop(context, {'id': id, 'name': discussionName});
+        }
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

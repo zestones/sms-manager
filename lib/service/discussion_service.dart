@@ -16,7 +16,7 @@ class DiscussionService {
     this._discussionParticipantRepository,
   );
 
-  void createDiscussion(discussionName, groups, contactIds) async {
+  Future<int> createDiscussion(discussionName, groups, contactIds) async {
     Discussion discussion = Discussion(name: discussionName);
     int discussionId = await _discussionRepository.insertDiscussion(discussion);
 
@@ -34,6 +34,8 @@ class DiscussionService {
 
     await _discussionParticipantRepository
         .insertDiscussionParticipants(discussionParticipants);
+
+    return discussionId;
   }
 
   Future<int> insertDiscussion(Discussion discussion) async {
