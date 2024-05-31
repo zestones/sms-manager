@@ -19,6 +19,7 @@ class DiscussionScreen extends StatefulWidget {
 class DiscussionScreenState extends State<DiscussionScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Message> _messages = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -49,12 +50,17 @@ class DiscussionScreenState extends State<DiscussionScreen> {
         );
 
         // TODO: Send SMS to all participants
-        // TODO: Save message to database
         messageService.insertMessage(message);
-
         _messages.add(message);
 
         _controller.clear();
+
+        // Scroll to the bottom of the list
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       });
     }
   }
@@ -74,6 +80,7 @@ class DiscussionScreenState extends State<DiscussionScreen> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(8.0),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
@@ -154,9 +161,7 @@ class MessageBubble extends StatelessWidget {
             ),
             child: Text(
               message.text,
-              style: TextStyle(
-                color: theme.colorScheme.onPrimary,
-              ),
+              style: TextStyle(color: theme.colorScheme.onPrimary),
             ),
           ),
         ),
