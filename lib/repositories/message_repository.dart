@@ -27,4 +27,9 @@ class MessageRepository {
       );
     });
   }
+
+  Future<void> deleteAllMessages() async {
+    final db = await _databaseHelper.database;
+    await db!.delete('Message');
+  }
 }

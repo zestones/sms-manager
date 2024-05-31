@@ -13,4 +13,8 @@ class MessageService {
   Future<List<Message>> getAllMessagesByDiscussionId(discussionId) async {
     return await _messageRepository.getAllMessagesByDiscussionId(discussionId);
   }
+
+  Future<void> deleteAllMessages() async {
+    await _messageRepository.deleteAllMessages();
+  }
 }

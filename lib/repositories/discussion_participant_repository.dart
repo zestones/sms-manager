@@ -23,4 +23,9 @@ class DiscussionParticipantRepository {
     }
     await batch.commit(noResult: true);
   }
+
+  Future<void> deleteAllDiscussionParticipants() async {
+    final db = await _databaseHelper.database;
+    await db!.delete('DiscussionParticipant');
+  }
 }

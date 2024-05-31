@@ -48,5 +48,6 @@ class DiscussionService {
 
   Future<void> deleteAllDiscussion() async {
     await _discussionRepository.deleteAllDiscussion();
+    await _discussionParticipantRepository.deleteAllDiscussionParticipants();
   }
 }

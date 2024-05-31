@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:namer_app/service/contact_list_service.dart';
 import 'package:namer_app/service/contact_service.dart';
+import 'package:namer_app/service/discussion_service.dart';
 import 'package:namer_app/service/group_service.dart';
 import 'package:namer_app/service/load_csv_contact_list_service.dart';
+import 'package:namer_app/service/message_service.dart';
+import 'package:namer_app/widgets/large_ink_well_button.dart';
 import 'package:provider/provider.dart';
 import 'package:namer_app/main.dart';
-
-import '../../widgets/large_ink_well_button.dart';
 
 class DataStorageScreen extends StatelessWidget {
   final Key bodyKey = UniqueKey();
@@ -25,6 +26,9 @@ class DataStorageScreen extends StatelessWidget {
 
     final contactService = Provider.of<ContactService>(context, listen: false);
     final groupService = Provider.of<GroupService>(context, listen: false);
+    final discussionService =
+        Provider.of<DiscussionService>(context, listen: false);
+    final messageService = Provider.of<MessageService>(context, listen: false);
 
     void selectStoragePath() async {
       String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
@@ -150,7 +154,7 @@ class DataStorageScreen extends StatelessWidget {
             ),
           ),
 
-          // Container with button to manage contacts
+          // button to delete all contacts
           LargeInkWellButton(
             theme: theme,
             title: 'Supprimer tous les contacts',
@@ -173,11 +177,45 @@ class DataStorageScreen extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          // TODO : implement the deletion of all data from the database
                           contactService.deleteAllContact();
                           groupService.deleteAllGroup();
                           contactListService.deleteAllContactList();
 
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Confirmer'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+
+          LargeInkWellButton(
+            theme: theme,
+            title: 'Supprimer toutes les discussions',
+            subtitle: 'Supprime toutes les discussions de la base de données',
+            callback: () {
+              // pop up a dialog to confirm the deletion
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Supprimer toutes les discussions'),
+                    content: Text(
+                        'Êtes-vous sûr de vouloir supprimer toutes les discussions ?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Annuler'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          discussionService.deleteAllDiscussion();
+                          messageService.deleteAllMessages();
                           Navigator.of(context).pop();
                         },
                         child: Text('Confirmer'),
