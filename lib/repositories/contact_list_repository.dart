@@ -18,13 +18,6 @@ class ContactListRepository {
       List<FilterOption> filterOptions) async {
     final db = await _databaseHelper.database;
 
-    filterOptions
-        .removeWhere((option) => option.state == TriCheckboxEnum.unchecked);
-
-    if (filterOptions.isEmpty) {
-      return [];
-    }
-
     String query = '''
       SELECT DISTINCT c.* 
       FROM Contact c

@@ -256,12 +256,6 @@ class ContactsScreenState extends State<ContactsScreen> {
   Future<List<Contact>> _applyFilter() async {
     final contactListService =
         Provider.of<ContactListService>(context, listen: false);
-
-    for (var filterOption in _filterOptions) {
-      print(
-          "> : ${filterOption.state} - ${filterOption.id} - ${filterOption.name}");
-    }
-
     List<Contact> filteredContacts =
         await contactListService.getContactListByGroups(_filterOptions);
 

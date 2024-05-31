@@ -4,6 +4,7 @@ import 'package:namer_app/models/discussion_participant.dart';
 import 'package:namer_app/repositories/contact_list_repository.dart';
 import 'package:namer_app/repositories/discussion_participant_repository.dart';
 import 'package:namer_app/repositories/discussion_repository.dart';
+import 'package:namer_app/widgets/tri_state_checkbox.dart';
 
 class DiscussionService {
   final DiscussionRepository _discussionRepository;
@@ -20,8 +21,11 @@ class DiscussionService {
     Discussion discussion = Discussion(name: discussionName);
     int discussionId = await _discussionRepository.insertDiscussion(discussion);
 
-    List<Contact> contactsList =
-        await _contactListRepository.getContactsByGroups(groups);
+    List<Contact> contactsList = [];
+    groups.removeWhere((option) => option.state == TriCheckboxEnum.unchecked);
+    if (!groups.isEmpty) {
+      contactsList = await _contactListRepository.getContactsByGroups(groups);
+    }
 
     var contactListIds = contactsList.map((contact) => contact.id).toSet();
     contactIds = contactIds.toSet();
