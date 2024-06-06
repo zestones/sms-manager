@@ -5,8 +5,12 @@ import 'package:namer_app/screens/group_selection_screen.dart';
 import 'package:namer_app/service/contact_service.dart';
 import 'package:namer_app/service/discussion_service.dart';
 import 'package:namer_app/widgets/large_ink_well_button.dart';
+import 'package:namer_app/widgets/styled_search_bar.dart';
 import 'package:namer_app/widgets/tri_state_checkbox.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/contacts_selection_container.dart';
+import '../widgets/selected_contacts_scroll_container.dart';
 
 class AddDiscussionScreen extends StatefulWidget {
   @override
@@ -90,7 +94,6 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
 
   void _filterContacts() {
     final query = _searchController.text.toLowerCase();
-    print('Filtering contacts with query: $query');
     setState(() {
       filteredContacts = allContacts.where((contact) {
         final fullName =
@@ -169,14 +172,14 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                     callback: () => _navigateToGroupSelection(context)),
                 SizedBox(height: 6.0),
               ],
-              SearchBar(
+              StyledSearchBar(
                 controller: _searchController,
                 hintText: 'Rechercher des contacts',
                 onChanged: (value) => {},
                 onFocusChange: (value) =>
                     setState(() => isSearchBarFocused = value),
               ),
-              SelectedContactsView(
+              SelectedContactsScrollContainer(
                 selectedContacts: selectedContacts,
                 scrollController: _scrollController,
               ),
@@ -191,7 +194,7 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
                   ),
                 ),
               ),
-              ContactsListView(
+              ContactsSelectionContainer(
                 filteredContacts: filteredContacts,
                 selectedContacts: selectedContacts,
                 onContactTap: (contact) {
@@ -235,174 +238,12 @@ class AddDiscussionScreenState extends State<AddDiscussionScreen> {
               return GroupChip(
                 option: option,
                 onDelete: (option) {
-                  print('Removed ${option.name}');
-                  setState(() {
-                    _filterOptions.remove(option);
-                  });
+                  setState(() => _filterOptions.remove(option));
                 },
               );
             }).toList(),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SelectedContactsView extends StatelessWidget {
-  final List<Contact> selectedContacts;
-  final ScrollController scrollController;
-
-  SelectedContactsView({
-    required this.selectedContacts,
-    required this.scrollController,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-    return selectedContacts.isNotEmpty
-        ? Column(
-            children: [
-              SizedBox(height: 16.0),
-              SizedBox(
-                height: 80.0,
-                child: ListView.builder(
-                  controller: scrollController,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: selectedContacts.length,
-                  itemBuilder: (context, index) {
-                    final contact = selectedContacts[index];
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: CircleAvatar(
-                            backgroundColor: theme.colorScheme.primary,
-                            child: Text(
-                              contact.firstName[0],
-                              style:
-                                  TextStyle(color: theme.colorScheme.onPrimary),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          contact.firstName,
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            color: theme.colorScheme.onBackground,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          )
-        : SizedBox.shrink();
-  }
-}
-
-class ContactsListView extends StatelessWidget {
-  final List<Contact> filteredContacts;
-  final List<Contact> selectedContacts;
-  final Function(Contact) onContactTap;
-  final Function(Contact, bool) onCheckboxChanged;
-
-  ContactsListView({
-    required this.filteredContacts,
-    required this.selectedContacts,
-    required this.onContactTap,
-    required this.onCheckboxChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-
-    return Expanded(
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: BouncingScrollPhysics(),
-        itemCount: filteredContacts.length,
-        itemBuilder: (context, index) {
-          final contact = filteredContacts[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue,
-              child: Text(
-                contact.firstName[0],
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            title: Row(
-              children: [
-                Text('${contact.firstName} ${contact.lastName}'),
-                Spacer(),
-                Checkbox(
-                  value: selectedContacts.contains(contact),
-                  onChanged: (bool? value) =>
-                      onCheckboxChanged(contact, value!),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                  ),
-                  checkColor: theme.colorScheme.primary,
-                  activeColor: theme.colorScheme.primary,
-                ),
-              ],
-            ),
-            onTap: () => onContactTap(contact),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final Function(String) onChanged;
-  final Function(bool) onFocusChange;
-
-  const SearchBar({
-    Key? key,
-    required this.controller,
-    required this.hintText,
-    required this.onChanged,
-    required this.onFocusChange,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-
-    return Focus(
-      onFocusChange: onFocusChange,
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16.0),
-        height: 40.0,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.background,
-          border: Border.all(color: theme.colorScheme.onBackground),
-          borderRadius: BorderRadius.circular(50.0),
-        ),
-        child: TextField(
-          controller: controller,
-          onChanged: onChanged,
-          onTap: () => onFocusChange(true),
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: TextStyle(color: theme.colorScheme.secondary),
-            border: InputBorder.none,
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 20.0, vertical: 1.0),
-            suffixIcon: Icon(Icons.search, color: theme.colorScheme.secondary),
-          ),
-          style: TextStyle(color: theme.colorScheme.onBackground),
-        ),
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/models/contact.dart';
 import 'package:namer_app/models/discussion.dart';
-import 'package:namer_app/screens/add_discussion_screen.dart';
+import 'package:namer_app/screens/add_contacts_discussion_screen.dart';
 import 'package:namer_app/service/discussion_participant_service.dart';
 import 'package:namer_app/widgets/contact_tile.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +38,7 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
         setState(() {
           participants.clear();
           participants.addAll(contacts);
+          print(participants);
         });
       },
     );
@@ -102,8 +103,9 @@ class _DiscussionInfosScreenState extends State<DiscussionInfosScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    // TODO: use the AddDiscussionScreen component to select contacts
-                    builder: (context) => AddDiscussionScreen(),
+                    builder: (context) => AddContactsDiscussionScreen(
+                      discussion: widget.discussion,
+                    ),
                   ),
                 ).then((_) => _loadParticipants());
               },

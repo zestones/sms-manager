@@ -30,6 +30,23 @@ class Contact {
   }
 
   @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Contact) return false;
+    return id == other.id &&
+        firstName == other.firstName &&
+        lastName == other.lastName &&
+        phoneNumber == other.phoneNumber;
+  }
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      firstName.hashCode ^
+      lastName.hashCode ^
+      phoneNumber.hashCode;
+
+  @override
   String toString() {
     return 'Contact{id: $id, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber}';
   }
