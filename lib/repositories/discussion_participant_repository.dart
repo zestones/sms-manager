@@ -37,6 +37,20 @@ class DiscussionParticipantRepository {
     });
   }
 
+  Future<void> removeParticipantsFromDiscussion(
+      discussionId, List<int> contactIds) async {
+    final db = await _databaseHelper.database;
+    final batch = db!.batch();
+
+    for (var contactId in contactIds) {
+      batch.delete('DiscussionParticipant',
+          where: 'discussion_id = ? AND contact_id = ?',
+          whereArgs: [discussionId, contactId]);
+    }
+
+    await batch.commit(noResult: true);
+  }
+
   Future<void> deleteAllDiscussionParticipants() async {
     final db = await _databaseHelper.database;
     await db!.delete('DiscussionParticipant');

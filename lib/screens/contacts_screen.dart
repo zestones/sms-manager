@@ -8,6 +8,8 @@ import 'package:namer_app/service/group_service.dart';
 import 'package:namer_app/widgets/tri_state_checkbox.dart';
 import 'package:provider/provider.dart';
 
+import '../widgets/contact_tile.dart';
+
 class ContactsScreen extends StatefulWidget {
   @override
   ContactsScreenState createState() => ContactsScreenState();
@@ -264,46 +266,6 @@ class ContactsScreenState extends State<ContactsScreen> {
         .then((value) => print(value));
 
     return filteredContacts;
-  }
-}
-
-class ContactTile extends StatelessWidget {
-  const ContactTile({
-    super.key,
-    required this.contact,
-  });
-
-  final Contact contact;
-
-  @override
-  Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor,
-        child: Text(
-          contact.firstName.isNotEmpty
-              ? contact.firstName[0].toUpperCase()
-              : '',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-      title: Text(
-        '${contact.firstName} ${contact.lastName}',
-        style: TextStyle(
-          color: theme.colorScheme.onBackground,
-        ),
-      ),
-      subtitle: Text(contact.phoneNumber,
-          style: TextStyle(
-            color: theme.colorScheme.onBackground,
-            fontSize: 12.0,
-            fontStyle: FontStyle.italic,
-          )),
-    );
   }
 }
 
