@@ -1,9 +1,11 @@
+import 'package:namer_app/repositories/backup_repository.dart';
 import 'package:namer_app/repositories/contact_list_repository.dart';
 import 'package:namer_app/repositories/contact_repository.dart';
 import 'package:namer_app/repositories/discussion_participant_repository.dart';
 import 'package:namer_app/repositories/discussion_repository.dart';
 import 'package:namer_app/repositories/group_repository.dart';
 import 'package:namer_app/repositories/message_repository.dart';
+import 'package:namer_app/service/backup_service.dart';
 import 'package:namer_app/service/contact_list_service.dart';
 import 'package:namer_app/service/contact_service.dart';
 import 'package:namer_app/service/discussion_participant_service.dart';
@@ -41,6 +43,8 @@ class ServiceInjection {
           create: (_) => DiscussionParticipantRepository(databaseHelper)),
       Provider<MessageRepository>(
           create: (_) => MessageRepository(databaseHelper)),
+      Provider<BackupRepository>(
+          create: (_) => BackupRepository(databaseHelper)),
     ];
   }
 
@@ -57,6 +61,10 @@ class ServiceInjection {
       ProxyProvider<MessageRepository, MessageService>(
         update: (context, messageRepository, _) =>
             MessageService(messageRepository),
+      ),
+      ProxyProvider<BackupRepository, BackupService>(
+        update: (context, backupRepository, _) =>
+            BackupService(backupRepository),
       ),
       ProxyProvider<GroupRepository, GroupService>(
         update: (context, groupRepository, _) => GroupService(groupRepository),

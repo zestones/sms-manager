@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (context) => AddDiscussionScreen()),
           );
 
-          if (obj['name'] != null && obj['id'] != null) {
+          if (obj != null && obj['name'] != null && obj['id'] != null) {
             setState(() =>
                 discussions.add(Discussion(id: obj['id'], name: obj['name'])));
           }
