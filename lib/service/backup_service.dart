@@ -74,15 +74,6 @@ class BackupService {
     final Map<String, dynamic> dump =
         Map<String, dynamic>.from(jsonDecode(content));
 
-    // print the dump
-    print(dump['contacts']);
-    print("=====================================");
-    print(dump['groups']);
-    print(dump['contactGroups']);
-    print(dump['discussions']);
-    print(dump['messages']);
-    print(dump['discussionParticipants']);
-
     try {
       await _backupRepository.insertAll(dump);
       return true;

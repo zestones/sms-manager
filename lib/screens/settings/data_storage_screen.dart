@@ -10,7 +10,6 @@ import 'package:namer_app/service/group_service.dart';
 import 'package:namer_app/service/load_csv_contact_list_service.dart';
 import 'package:namer_app/service/message_service.dart';
 import 'package:namer_app/widgets/large_ink_well_button.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:namer_app/main.dart';
 
@@ -49,7 +48,7 @@ class _DataStorageScreenState extends State<DataStorageScreen> {
     }
 
     void selectContactFile() async {
-      if (appState.isImportingFile) {
+      if (appState.isDatabaseLocked) {
         // TODO : move this to a popup widget ?
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Un fichier est déjà en cours d\'importation...'),
@@ -66,7 +65,6 @@ class _DataStorageScreenState extends State<DataStorageScreen> {
         return;
       }
 
-      appState.setImportingFile(true);
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
@@ -78,10 +76,10 @@ class _DataStorageScreenState extends State<DataStorageScreen> {
           appState.filePath = file.path;
           await appState.insertContactsIntoDb(loadCSVContactListService, file);
         } finally {
-          appState.setImportingFile(false);
+          appState.setDatabaseLocked(false);
         }
       } else {
-        appState.setImportingFile(false);
+        appState.setDatabaseLocked(false);
       }
     }
 
@@ -306,6 +304,7 @@ class DoubleButtonOutline extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     final backupService = Provider.of<BackupService>(context);
+    var appState = context.watch<MyAppState>();
 
     return Row(
       children: [
@@ -375,9 +374,25 @@ class DoubleButtonOutline extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => {
+                if (appState.isDatabaseLocked)
+                  {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          'Un fichier est déjà en cours d\'importation...'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: theme.colorScheme.primary,
+                      action: SnackBarAction(
+                        label: 'Fermer',
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        },
+                      ),
+                    ))
+                  },
+                appState.setDatabaseLocked(true),
                 pickFile(context).then((path) => {
                       backupService.import(path).then((success) => {
-                            // TODO : change to local notification loading
+                            appState.setDatabaseLocked(false),
                             if (!success)
                               {
                                 ScaffoldMessenger.of(context)
