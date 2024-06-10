@@ -1,26 +1,38 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:namer_app/service/service_injection.dart';
+import 'package:namer_app/screens/contacts_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+
+// Services
+import 'package:namer_app/service/load_csv_contact_list_service.dart';
+import 'package:namer_app/service/local_notification_service.dart';
 
 // Screens
-import 'screens/contacts_screen.dart';
-import 'screens/settings_screen.dart';
+import 'screens/settings/main_settings_screen.dart';
 import 'screens/home_screen.dart';
 
 // Utils
-import 'utils/file_helper.dart';
-
-// Models
-import 'package:namer_app/models/contact_list.dart';
+import 'package:namer_app/utils/database_helper.dart';
+import 'package:namer_app/utils/themes.dart';
 
 // Widgets
-import 'widgets/header.dart';
 import 'widgets/navigation.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalNotificationService.init();
+
+  final databaseHelper = DatabaseHelper();
+  await databaseHelper.init();
+
+  runApp(
+    MultiProvider(
+      providers: ServiceInjection.inject(databaseHelper),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -30,16 +42,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'SMS Manager',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme:
-              ColorScheme.fromSeed(seedColor: Color.fromRGBO(48, 150, 207, 1)),
-          primaryColor: Color.fromRGBO(48, 150, 207, 1),
-          fontFamily: 'Roboto',
-        ),
-        home: MyHomePage(),
+      child: Consumer<MyAppState>(
+        builder: (context, appState, child) {
+          return MaterialApp(
+            title: 'SMS Manager',
+            theme: appState.isDarkTheme ? darkTheme : lightTheme,
+            home: MyHomePage(),
+          );
+        },
       ),
     );
   }
@@ -48,41 +58,68 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   int _selectedIndex = 0;
   String filePath = '';
+  String storagePath = '';
 
+  bool _isDarkTheme = false;
+  bool get isDarkTheme => _isDarkTheme;
   int get selectedIndex => _selectedIndex;
-  ContactList contactList = ContactList([]);
-  ContactList filteredContactList = ContactList([]);
+  bool _isDatabaseLocked = false;
+  bool get isDatabaseLocked => _isDatabaseLocked;
 
-  void setIndex(int index) {
+  void setDatabaseLocked(bool value) {
+    _isDatabaseLocked = value;
+    notifyListeners();
+  }
+
+  Future<void> insertContactsIntoDb(
+      LoadCSVContactListService loadCSVContactListService, File file) async {
+    try {
+      // Call the service to load contacts from the CSV file
+      await loadCSVContactListService.call(file.path);
+
+      // Notify success
+      await LocalNotificationService.showNotification(
+        title: 'Importation terminée',
+        body: 'Tous les contacts ont été importés avec succès.',
+        payload: 'contacts_imported',
+      );
+    } catch (e) {
+      print('Error importing contacts: $e');
+
+      // Handle errors (Optional: Use notifications or other methods)
+      await LocalNotificationService.showNotification(
+        title: 'Erreur d\'importation',
+        body: 'Une erreur s\'est produite lors de l\'importation des contacts.',
+        payload: 'contacts_import_error',
+      );
+    }
+  }
+
+  void updateActivePageIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
   }
 
   void clearContactList() {
-    contactList.clear();
+    // contactList.clear();
     notifyListeners();
   }
 
-  void pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-    );
+  void toggleTheme() {
+    _isDarkTheme = !_isDarkTheme;
+    notifyListeners();
+  }
 
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      filePath = file.path;
-      contactList = FileHelper.getContactList(filePath);
-      filteredContactList = ContactList(contactList.persons);
-      notifyListeners();
-    }
+  void updateStoragePath(String path) {
+    storagePath = path;
+    notifyListeners();
   }
 }
 
 class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>(); // Watch MyAppState
+    var appState = context.watch<MyAppState>();
 
     Widget page;
     switch (appState.selectedIndex) {
@@ -103,11 +140,11 @@ class MyHomePage extends StatelessWidget {
       resizeToAvoidBottomInset: false,
       body: Column(
         children: [
-          Header(primaryColor: Theme.of(context).primaryColor),
+          // Header(primaryColor: Theme.of(context).primaryColor),
           Expanded(child: Container(child: page)),
-          Navigation(),
         ],
       ),
+      bottomNavigationBar: Navigation(),
     );
   }
 }
