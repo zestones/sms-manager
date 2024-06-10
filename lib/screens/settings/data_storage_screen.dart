@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:namer_app/service/backup_service.dart';
 import 'package:namer_app/service/contact_list_service.dart';
 import 'package:namer_app/service/contact_service.dart';
 import 'package:namer_app/service/discussion_service.dart';
@@ -12,8 +13,16 @@ import 'package:namer_app/widgets/large_ink_well_button.dart';
 import 'package:provider/provider.dart';
 import 'package:namer_app/main.dart';
 
-class DataStorageScreen extends StatelessWidget {
+class DataStorageScreen extends StatefulWidget {
+  @override
+  State<DataStorageScreen> createState() => _DataStorageScreenState();
+}
+
+class _DataStorageScreenState extends State<DataStorageScreen> {
   final Key bodyKey = UniqueKey();
+
+  String storagePath = BackupService.defaultExternalPath;
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -34,11 +43,12 @@ class DataStorageScreen extends StatelessWidget {
       String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
       if (selectedDirectory != null) {
         appState.updateStoragePath(selectedDirectory);
+        storagePath = selectedDirectory;
       }
     }
 
     void selectContactFile() async {
-      if (appState.isImportingFile) {
+      if (appState.isDatabaseLocked) {
         // TODO : move this to a popup widget ?
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Un fichier est déjà en cours d\'importation...'),
@@ -55,7 +65,6 @@ class DataStorageScreen extends StatelessWidget {
         return;
       }
 
-      appState.setImportingFile(true);
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
@@ -67,10 +76,10 @@ class DataStorageScreen extends StatelessWidget {
           appState.filePath = file.path;
           await appState.insertContactsIntoDb(loadCSVContactListService, file);
         } finally {
-          appState.setImportingFile(false);
+          appState.setDatabaseLocked(false);
         }
       } else {
-        appState.setImportingFile(false);
+        appState.setDatabaseLocked(false);
       }
     }
 
@@ -90,10 +99,11 @@ class DataStorageScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           LargeInkWellButton(
-              theme: theme,
-              callback: selectStoragePath,
-              title: 'Emplacement de stockage',
-              subtitle: 'Aucun chemin de stockage sélectionné'),
+            theme: theme,
+            callback: selectStoragePath,
+            title: 'Emplacement de stockage',
+            subtitle: storagePath,
+          ),
           InfosNote(
             theme: theme,
             text:
@@ -117,7 +127,7 @@ class DataStorageScreen extends StatelessWidget {
 
                 // Save and restore buttons
                 SizedBox(height: 20.0),
-                DoubleButtonOutline(theme: theme),
+                DoubleButtonOutline(storagePath: storagePath),
               ],
             ),
           ),
@@ -272,13 +282,30 @@ class InfosNote extends StatelessWidget {
 class DoubleButtonOutline extends StatelessWidget {
   const DoubleButtonOutline({
     super.key,
-    required this.theme,
+    required this.storagePath,
   });
 
-  final ThemeData theme;
+  final String storagePath;
+
+  Future<String> pickFile(BuildContext context) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+
+    if (result != null) {
+      return result.files.single.path!;
+    } else {
+      return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    final backupService = Provider.of<BackupService>(context);
+    var appState = context.watch<MyAppState>();
+
     return Row(
       children: [
         Expanded(
@@ -286,7 +313,32 @@ class DoubleButtonOutline extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                // Add your logic for creating a backup
+                backupService.export(storagePath).then((success) => {
+                      if (!success)
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Erreur lors de la sauvegarde'),
+                            duration: Duration(seconds: 2),
+                            backgroundColor: theme.colorScheme.error,
+                            action: SnackBarAction(
+                                label: 'Fermer',
+                                onPressed: () => ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar()),
+                          ))
+                        }
+                      else
+                        {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('Sauvegarde réussie'),
+                            duration: Duration(seconds: 2),
+                            backgroundColor: theme.colorScheme.primary,
+                            action: SnackBarAction(
+                                label: 'Fermer',
+                                onPressed: () => ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar()),
+                          ))
+                        }
+                    });
               },
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(50.0),
@@ -321,8 +373,57 @@ class DoubleButtonOutline extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                // Add your logic for restoring a backup
+              onTap: () => {
+                if (appState.isDatabaseLocked)
+                  {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          'Un fichier est déjà en cours d\'importation...'),
+                      duration: Duration(seconds: 2),
+                      backgroundColor: theme.colorScheme.primary,
+                      action: SnackBarAction(
+                        label: 'Fermer',
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        },
+                      ),
+                    ))
+                  },
+                appState.setDatabaseLocked(true),
+                pickFile(context).then((path) => {
+                      backupService.import(path).then((success) => {
+                            appState.setDatabaseLocked(false),
+                            if (!success)
+                              {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content:
+                                      Text('Erreur lors de la restauration'),
+                                  duration: Duration(seconds: 2),
+                                  backgroundColor: theme.colorScheme.error,
+                                  action: SnackBarAction(
+                                      label: 'Fermer',
+                                      onPressed: () =>
+                                          ScaffoldMessenger.of(context)
+                                              .hideCurrentSnackBar()),
+                                ))
+                              }
+                            else
+                              {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content: Text('Restauration réussie'),
+                                  duration: Duration(seconds: 2),
+                                  backgroundColor: theme.colorScheme.primary,
+                                  action: SnackBarAction(
+                                      label: 'Fermer',
+                                      onPressed: () =>
+                                          ScaffoldMessenger.of(context)
+                                              .hideCurrentSnackBar()),
+                                ))
+                              }
+                          })
+                    })
               },
               borderRadius: BorderRadius.only(
                 topRight: Radius.circular(50.0),

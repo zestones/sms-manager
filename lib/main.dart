@@ -63,23 +63,21 @@ class MyAppState extends ChangeNotifier {
   bool _isDarkTheme = false;
   bool get isDarkTheme => _isDarkTheme;
   int get selectedIndex => _selectedIndex;
-  bool _isImportingFile = false;
-  bool get isImportingFile => _isImportingFile;
+  bool _isDatabaseLocked = false;
+  bool get isDatabaseLocked => _isDatabaseLocked;
 
-  void setImportingFile(bool value) {
-    _isImportingFile = value;
+  void setDatabaseLocked(bool value) {
+    _isDatabaseLocked = value;
     notifyListeners();
   }
 
   Future<void> insertContactsIntoDb(
       LoadCSVContactListService loadCSVContactListService, File file) async {
-    setImportingFile(true);
-
     try {
       // Call the service to load contacts from the CSV file
       await loadCSVContactListService.call(file.path);
 
-      // Notify success (Optional: Use notifications or other methods)
+      // Notify success
       await LocalNotificationService.showNotification(
         title: 'Importation terminée',
         body: 'Tous les contacts ont été importés avec succès.',
@@ -94,8 +92,6 @@ class MyAppState extends ChangeNotifier {
         body: 'Une erreur s\'est produite lors de l\'importation des contacts.',
         payload: 'contacts_import_error',
       );
-    } finally {
-      setImportingFile(false);
     }
   }
 
