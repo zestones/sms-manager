@@ -14,14 +14,17 @@ class CsvHelper {
   }
 
   Future<void> readCsv() async {
-    final input = File(path).openRead();
+    final fileContent = await File(path).readAsString();
+    final lines = LineSplitter().convert(fileContent);
 
-    await input.transform(utf8.decoder).transform(CsvToListConverter()).forEach(
-      (dynamic fields) {
-        csvData.add(fields);
-      },
-    );
+    for (final line in lines) {
+      final fields = CsvToListConverter(
+        eol: '\n',
+        shouldParseNumbers: false,
+      ).convert(line).first;
 
-    numberLines = csvData.length;
+      csvData.add(fields);
+      numberLines++;
+    }
   }
 }
