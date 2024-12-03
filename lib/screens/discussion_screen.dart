@@ -56,7 +56,6 @@ class DiscussionScreenState extends State<DiscussionScreen> {
           text: _controller.text,
         );
 
-        // Get the list of recipients
         discussionParticipantService
             .getContactsByDiscussionId(widget.discussion.id!)
             .then((recipients) => SmsHelper.sendSms(
@@ -100,20 +99,25 @@ class DiscussionScreenState extends State<DiscussionScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(8.0),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return MessageBubble(message: _messages[index]);
-              },
+      body: SingleChildScrollView(
+        reverse: true, // To scroll to the bottom when the keyboard appears
+        child: Column(
+          children: [
+            // Expanded ListView for messages
+            Container(
+              height: MediaQuery.of(context).size.height - 150, // Adjust height
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(8.0),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return MessageBubble(message: _messages[index]);
+                },
+              ),
             ),
-          ),
-          buildMessageInputField(theme),
-        ],
+            buildMessageInputField(theme),
+          ],
+        ),
       ),
     );
   }
@@ -137,6 +141,8 @@ class DiscussionScreenState extends State<DiscussionScreen> {
                 filled: true,
                 fillColor: theme.colorScheme.tertiary,
               ),
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
             ),
           ),
           const SizedBox(width: 8.0),
@@ -186,6 +192,8 @@ class MessageBubble extends StatelessWidget {
             child: Text(
               message.text,
               style: TextStyle(color: theme.colorScheme.onPrimary),
+              maxLines: null,
+              overflow: TextOverflow.visible,
             ),
           ),
         ),

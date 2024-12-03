@@ -30,13 +30,18 @@ class ContactsSelectionContainer extends StatelessWidget {
             leading: CircleAvatar(
               backgroundColor: Colors.blue,
               child: Text(
-                contact.firstName[0],
+                contact.firstName.isNotEmpty ? contact.firstName[0] : '?',
                 style: TextStyle(color: Colors.white),
               ),
             ),
             title: Row(
               children: [
-                Text('${contact.firstName} ${contact.lastName}'),
+                Expanded(
+                  child: Text(
+                    '${contact.firstName} ${contact.lastName}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 Spacer(),
                 Checkbox(
                   value: selectedContacts.contains(contact),

@@ -98,23 +98,39 @@ class ContactsScreenState extends State<ContactsScreen> {
                         Map<String, List<Contact>> groupedContacts =
                             groupContactByFirstLetter(filteredContacts);
 
-                        return ListView.builder(
-                          itemCount: groupedContacts.length * 2 - 1,
-                          itemBuilder: (context, index) {
-                            if (index.isOdd) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                              );
-                            } else {
-                              // Header or ContactTile
-                              int headerIndex = index ~/ 2;
-                              String letter =
-                                  groupedContacts.keys.toList()[headerIndex];
-                              return _buildHeaderOrContactTile(
-                                  letter, groupedContacts[letter]!);
-                            }
-                          },
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                'Total Contacts: ${filteredContacts.length}', // Display the number of contacts
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: groupedContacts.length * 2 - 1,
+                                itemBuilder: (context, index) {
+                                  if (index.isOdd) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                    );
+                                  } else {
+                                    // Header or ContactTile
+                                    int headerIndex = index ~/ 2;
+                                    String letter = groupedContacts.keys
+                                        .toList()[headerIndex];
+                                    return _buildHeaderOrContactTile(
+                                        letter, groupedContacts[letter]!);
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         );
                       }
                     },
